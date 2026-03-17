@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Panel de Administración | ProMontería</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--p:#37006C;--p-h:#4A009A;--p-d:#25004A;--p-lt:#F3E8FF;--ink:#0D0D12;--body:#374151;--muted:#6B7280;--light:#9CA3AF;--bg:#F9FAFB;--bdr:#E5E7EB;--bdr2:#D1D5DB;--success:#16A34A;--error:#DC2626;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
+/* Full styles in miembros.html - admin uses same patterns */
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--p-d),var(--p));padding:24px}
+.login-box{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo img{height:48px}
+.login-title{font-size:20px;font-weight:800;letter-spacing:-.03em;color:var(--ink);margin-bottom:4px;text-align:center}
+.login-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px}
+.ig{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
+.ig label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ig input{background:#fff;border:1.5px solid var(--bdr);border-radius:8px;padding:12px 14px;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s}
+.ig input:focus{border-color:var(--p)}
+.btn-login{width:100%;background:var(--p);color:#fff;border:none;padding:14px;border-radius:9px;font-family:'Inter',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+.btn-login:hover{background:var(--p-h)}
+.login-err{background:#FEE2E2;border:1px solid #FECACA;border-radius:8px;padding:10px 14px;font-size:13px;color:var(--error);margin-top:12px;display:none}
+.panel{display:none}
+.anav{background:var(--p);padding:0 clamp(16px,3vw,32px);display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.anav-brand{display:flex;align-items:center;gap:10px}
+.anav-brand img{height:34px}
+.anav-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.65)}
+.anav-right{display:flex;gap:8px}
+.bx{padding:7px 14px;border-radius:7px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.bx-ghost{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25)}.bx-ghost:hover{background:rgba(255,255,255,.25)}
+.bx-danger{background:#DC2626;color:#fff}.bx-danger:hover{background:#B91C1C}
+.abody{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px)}
+.aside{background:#fff;border-right:1px solid var(--bdr);padding:20px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+.aside-sec{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--light);padding:16px 20px 6px}
+.aitem{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--body);cursor:pointer;transition:all .18s;border:none;background:none;width:100%;text-align:left;font-family:'Inter',sans-serif}
+.aitem:hover{background:var(--p-lt);color:var(--p)}
+.aitem.active{background:var(--p-lt);color:var(--p);font-weight:700}
+.acontent{padding:32px clamp(16px,3vw,40px)}
+.aview{display:none}
+.aview.active{display:block}
+.aview-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.aview-title{font-size:20px;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
+.aview-sub{font-size:13px;color:var(--muted);margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat{background:#fff;border:1px solid var(--bdr);border-radius:10px;padding:18px}
+.stat-n{font-size:26px;font-weight:800;letter-spacing:-.04em;color:var(--p);line-height:1}
+.stat-l{font-size:11px;color:var(--muted);margin-top:3px}
+.fcard{background:#fff;border:1px solid var(--bdr);border-radius:14px;padding:28px;margin-bottom:20px}
+.fcard-title{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.fcard-sub{font-size:13px;color:var(--muted);margin-bottom:22px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:0}
+.fg label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.fg input,.fg select,.fg textarea{background:#fff;border:1.5px solid var(--bdr);border-radius:8px;padding:11px 14px;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s;-webkit-appearance:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--p)}
+.fg textarea{resize:vertical;min-height:80px}
+.fhelp{font-size:11px;color:var(--light);margin-top:3px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.full{grid-column:span 2}
+.btn-sub{background:var(--p);color:#fff;border:none;padding:12px 24px;border-radius:9px;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.btn-sub:hover{background:var(--p-h)}
+.btn-can{background:none;border:1.5px solid var(--bdr2);color:var(--muted);padding:11px 20px;border-radius:9px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--bdr);background:var(--bg)}
+td{padding:12px;border-bottom:1px solid var(--bdr);color:var(--body);vertical-align:middle}
+tr:hover td{background:var(--bg)}
+tr:last-child td{border-bottom:none}
+.tbl-card{background:#fff;border:1px solid var(--bdr);border-radius:14px;overflow:hidden}
+.tbl-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--bdr)}
+.tbl-hdr-title{font-size:15px;font-weight:700;color:var(--ink)}
+.badge{display:inline-flex;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.bp{background:var(--p-lt);color:var(--p)}
+.bg{background:#D1FAE5;color:#065F46}
+.btn-edit{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--bdr2);background:#fff;color:var(--body);font-family:'Inter',sans-serif}
+.btn-edit:hover{border-color:var(--p);color:var(--p)}
+.btn-del{padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid #FECACA;background:#FFF5F5;color:var(--error);font-family:'Inter',sans-serif}
+.btn-del:hover{background:#FEE2E2}
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--success);color:#fff;padding:14px 20px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.15);transform:translateY(80px);opacity:0;transition:all .35s cubic-bezier(.77,0,.18,1)}
+.toast.show{transform:none;opacity:1}
+@media(max-width:768px){.abody{grid-template-columns:1fr}.aside{display:none}.stats{grid-template-columns:1fr 1fr}.fgrid{grid-template-columns:1fr}.full{grid-column:span 1}}
+</style>
+</head>
+<body>
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo"><img src="fotos/logo.png" alt="ProMontería" onerror="this.style.display='none'"></div>
+    <div class="login-title">Panel de Administración</div>
+    <div class="login-sub">ProMontería · Acceso restringido</div>
+    <div class="ig"><label>Usuario</label><input type="text" id="lUser" placeholder="usuario" autocomplete="username"></div>
+    <div class="ig"><label>Contraseña</label><input type="password" id="lPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
+    <button class="btn-login" onclick="login()">Ingresar →</button>
+    <div class="login-err" id="loginErr">Usuario o contraseña incorrectos.</div>
+  </div>
+</div>
+<div class="panel" id="panel">
+  <nav class="anav">
+    <div class="anav-brand"><img src="fotos/logo.png" alt="ProMontería" onerror="this.style.display='none'"><span class="anav-title">Panel de Administración</span></div>
+    <div class="anav-right">
+      <a href="miembros.html" target="_blank" class="bx bx-ghost">Portal miembros →</a>
+      <a href="boletines.html" target="_blank" class="bx bx-ghost">Boletines →</a>
+      <a href="index.html" target="_blank" class="bx bx-ghost">Sitio →</a>
+      <button class="bx bx-danger" onclick="logout()">Salir</button>
+    </div>
+  </nav>
+  <div class="abody">
+    <aside class="aside">
+      <div class="aside-sec">Contenido</div>
+      <button class="aitem active" onclick="showView('vResumen',this)"><span>📊</span> Resumen</button>
+      <button class="aitem" onclick="showView('vBoletines',this)"><span>📄</span> Boletines</button>
+      <div class="aside-sec">Portal Miembros</div>
+      <button class="aitem" onclick="showView('vEventos',this)"><span>📅</span> Eventos</button>
+      <button class="aitem" onclick="showView('vOportunidades',this)"><span>💼</span> Oportunidades</button>
+      <button class="aitem" onclick="showView('vMiembros',this)"><span>🏢</span> Miembros</button>
+      <div class="aside-sec">Configuración</div>
+      <button class="aitem" onclick="showView('vConfig',this)"><span>⚙️</span> Sectores & Config</button>
+    </aside>
+    <main class="acontent">
+
+      <div class="aview active" id="vResumen">
+        <div class="aview-hdr"><div><div class="aview-title">Resumen general</div><div class="aview-sub">Estado del contenido publicado</div></div></div>
+        <div class="stats">
+          <div class="stat"><div class="stat-n" id="rBol">0</div><div class="stat-l">Boletines</div></div>
+          <div class="stat"><div class="stat-n" id="rEv">0</div><div class="stat-l">Eventos</div></div>
+          <div class="stat"><div class="stat-n" id="rOp">0</div><div class="stat-l">Oportunidades</div></div>
+          <div class="stat"><div class="stat-n" id="rMi">0</div><div class="stat-l">Miembros</div></div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--bdr);border-radius:14px;padding:24px">
+          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:16px">Accesos rápidos</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <button onclick="showView('vBoletines',document.querySelectorAll('.aitem')[1])" style="padding:20px;border:1.5px solid var(--bdr);border-radius:12px;background:#fff;cursor:pointer;text-align:left;font-family:Inter,sans-serif;transition:border-color .2s" onmouseenter="this.style.borderColor='var(--p)'" onmouseleave="this.style.borderColor='var(--bdr)'"><div style="font-size:24px;margin-bottom:8px">📄</div><div style="font-size:13px;font-weight:700;color:var(--ink)">Publicar boletín</div><div style="font-size:12px;color:var(--muted)">Agregar nuevo documento</div></button>
+            <button onclick="showView('vEventos',document.querySelectorAll('.aitem')[3])" style="padding:20px;border:1.5px solid var(--bdr);border-radius:12px;background:#fff;cursor:pointer;text-align:left;font-family:Inter,sans-serif;transition:border-color .2s" onmouseenter="this.style.borderColor='var(--p)'" onmouseleave="this.style.borderColor='var(--bdr)'"><div style="font-size:24px;margin-bottom:8px">📅</div><div style="font-size:13px;font-weight:700;color:var(--ink)">Crear evento</div><div style="font-size:12px;color:var(--muted)">Para portal de miembros</div></button>
+            <button onclick="showView('vMiembros',document.querySelectorAll('.aitem')[5])" style="padding:20px;border:1.5px solid var(--bdr);border-radius:12px;background:#fff;cursor:pointer;text-align:left;font-family:Inter,sans-serif;transition:border-color .2s" onmouseenter="this.style.borderColor='var(--p)'" onmouseleave="this.style.borderColor='var(--bdr)'"><div style="font-size:24px;margin-bottom:8px">🏢</div><div style="font-size:13px;font-weight:700;color:var(--ink)">Agregar miembro</div><div style="font-size:12px;color:var(--muted)">Directorio de empresas</div></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="aview" id="vBoletines">
+        <div class="aview-hdr"><div><div class="aview-title">📄 Boletines</div><div class="aview-sub">Gestión de boletines de inteligencia sectorial</div></div></div>
+        <div class="fcard">
+          <div class="fcard-title">Publicar nuevo boletín</div>
+          <div class="fcard-sub">Complete todos los campos obligatorios (*) y haga clic en "Publicar".</div>
+          <div class="fgrid">
+            <div class="fg full"><label>Título *</label><input type="text" id="bTitulo" placeholder="Ej: Ingredientes naturales para la industria cosmética: Aceites"></div>
+            <div class="fg"><label>Fecha de publicación *</label><input type="month" id="bFecha"></div>
+            <div class="fg"><label>Sector *</label><select id="bSector"><option value="">Seleccione</option></select></div>
+            <div class="fg full"><label>Resumen *</label><textarea id="bResumen" placeholder="Descripción breve del contenido..."></textarea></div>
+            <div class="fg full"><label>Tags (separados por coma)</label><input type="text" id="bTags" placeholder="Ej: Cacao, Exportación, Cosmética"></div>
+            <div class="fg full"><label>URL para ver el boletín (OneDrive) *</label><input type="url" id="bUrlVer" placeholder="https://1drv.ms/b/..."><div class="fhelp">Enlace con "Cualquier persona con el vínculo puede ver"</div></div>
+            <div class="fg full"><label>URL para descargar PDF *</label><input type="url" id="bUrlDl" placeholder="https://1drv.ms/b/...?download=1"></div>
+          </div>
+          <div style="margin-top:22px;display:flex;gap:10px"><button class="btn-sub" onclick="publicarBoletin()">Publicar boletín →</button><button class="btn-can" onclick="limpiar('b','Titulo,Resumen,Tags,UrlVer,UrlDl')">Limpiar</button></div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-hdr"><div class="tbl-hdr-title">Boletines publicados</div></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Título</th><th>Fecha</th><th>Sector</th><th>Acciones</th></tr></thead><tbody id="tblBoletines"></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="aview" id="vEventos">
+        <div class="aview-hdr"><div><div class="aview-title">📅 Eventos</div><div class="aview-sub">Eventos para el portal de miembros</div></div></div>
+        <div class="fcard">
+          <div class="fcard-title">Crear nuevo evento</div>
+          <div class="fcard-sub">Los eventos aparecerán en el portal de miembros inmediatamente.</div>
+          <div class="fgrid">
+            <div class="fg full"><label>Nombre del evento *</label><input type="text" id="eTitulo" placeholder="Ej: Rueda de Negocios Córdoba en Conexión 2026"></div>
+            <div class="fg"><label>Fecha *</label><input type="date" id="eFecha"></div>
+            <div class="fg"><label>Hora</label><input type="time" id="eHora"></div>
+            <div class="fg"><label>Lugar / Plataforma</label><input type="text" id="eLugar" placeholder="Ej: Hotel Montería Plaza / Zoom"></div>
+            <div class="fg"><label>Modalidad</label><select id="eModalidad"><option>Presencial</option><option>Virtual</option><option>Híbrido</option></select></div>
+            <div class="fg"><label>Cupos disponibles</label><input type="number" id="eCupos" placeholder="50"></div>
+            <div class="fg full"><label>Descripción *</label><textarea id="eDescripcion" placeholder="Describe el evento, sus objetivos y a quién va dirigido..."></textarea></div>
+            <div class="fg full"><label>URL de inscripción</label><input type="url" id="eUrl" placeholder="https://..."></div>
+          </div>
+          <div style="margin-top:22px;display:flex;gap:10px"><button class="btn-sub" onclick="publicarEvento()">Publicar evento →</button><button class="btn-can" onclick="limpiar('e','Titulo,Hora,Lugar,Cupos,Descripcion,Url')">Limpiar</button></div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-hdr"><div class="tbl-hdr-title">Eventos publicados</div></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Evento</th><th>Fecha</th><th>Modalidad</th><th>Acciones</th></tr></thead><tbody id="tblEventos"></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="aview" id="vOportunidades">
+        <div class="aview-hdr"><div><div class="aview-title">💼 Oportunidades</div><div class="aview-sub">Convocatorias y proyectos para miembros</div></div></div>
+        <div class="fcard">
+          <div class="fcard-title">Publicar nueva oportunidad</div>
+          <div class="fcard-sub">Aparecerá en el portal de miembros inmediatamente.</div>
+          <div class="fgrid">
+            <div class="fg full"><label>Nombre de la convocatoria *</label><input type="text" id="oNombre" placeholder="Ej: Fondo de Capital Córdoba Agro 2026"></div>
+            <div class="fg"><label>Dirigido a *</label><input type="text" id="oDirigidoA" placeholder="Ej: Empresas agroindustriales"></div>
+            <div class="fg"><label>Sector *</label><select id="oSector"><option value="">Seleccione</option></select></div>
+            <div class="fg"><label>Monto de apoyo</label><input type="text" id="oMonto" placeholder="Ej: Hasta $500M COP"></div>
+            <div class="fg"><label>Fecha límite</label><input type="date" id="oFechaLimite"></div>
+            <div class="fg full"><label>Descripción *</label><textarea id="oDescripcion" placeholder="Describe la oportunidad, requisitos y beneficios..."></textarea></div>
+            <div class="fg full"><label>URL para postularse *</label><input type="url" id="oUrl" placeholder="https://..."></div>
+          </div>
+          <div style="margin-top:22px;display:flex;gap:10px"><button class="btn-sub" onclick="publicarOportunidad()">Publicar oportunidad →</button><button class="btn-can" onclick="limpiar('o','Nombre,DirigidoA,Monto,FechaLimite,Descripcion,Url')">Limpiar</button></div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-hdr"><div class="tbl-hdr-title">Oportunidades publicadas</div></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Nombre</th><th>Sector</th><th>Monto</th><th>Límite</th><th>Acciones</th></tr></thead><tbody id="tblOportunidades"></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="aview" id="vMiembros">
+        <div class="aview-hdr"><div><div class="aview-title">🏢 Miembros</div><div class="aview-sub">Directorio de empresas del portal</div></div><span id="cntMiembros" style="font-size:13px;color:var(--muted)"></span></div>
+        <div class="fcard">
+          <div class="fcard-title">Agregar nuevo miembro</div>
+          <div class="fcard-sub">Complete la información para agregar la empresa al directorio.</div>
+          <div class="fgrid">
+            <div class="fg full"><label>Nombre de la empresa *</label><input type="text" id="mNombre" placeholder="Ej: Clínica San Sebastián IPS"></div>
+            <div class="fg"><label>Sector *</label><select id="mSector"><option value="">Seleccione</option></select></div>
+            <div class="fg"><label>Teléfono</label><input type="tel" id="mTelefono" placeholder="311 722 5979"></div>
+            <div class="fg"><label>Email</label><input type="email" id="mEmail" placeholder="contacto@empresa.com"></div>
+            <div class="fg"><label>Sitio web</label><input type="text" id="mWeb" placeholder="www.empresa.com"></div>
+            <div class="fg"><label>Dirección</label><input type="text" id="mDireccion" placeholder="Cra 8 #35-09 (Montería)"></div>
+            <div class="fg full"><label>Descripción</label><textarea id="mDescripcion" placeholder="Breve descripción de la empresa y sus servicios..."></textarea></div>
+            <div class="fg full"><label>URL del logo</label><input type="url" id="mLogo" placeholder="https://... (enlace directo a imagen)"><div class="fhelp">Sube el logo a OneDrive y pega el enlace directo</div></div>
+          </div>
+          <div style="margin-top:22px;display:flex;gap:10px"><button class="btn-sub" onclick="publicarMiembro()">Agregar miembro →</button><button class="btn-can" onclick="limpiar('m','Nombre,Telefono,Email,Web,Direccion,Descripcion,Logo')">Limpiar</button></div>
+        </div>
+        <div class="tbl-card">
+          <div class="tbl-hdr"><div class="tbl-hdr-title">Miembros registrados</div><input type="text" placeholder="Buscar..." oninput="renderTblMiembros(this.value)" style="padding:7px 12px;border:1.5px solid var(--bdr);border-radius:7px;font-family:Inter,sans-serif;font-size:13px;outline:none;width:200px"></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Empresa</th><th>Sector</th><th>Teléfono</th><th>Email</th><th>Acciones</th></tr></thead><tbody id="tblMiembros"></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="aview" id="vConfig">
+        <div class="aview-hdr"><div><div class="aview-title">⚙️ Configuración</div><div class="aview-sub">Sectores y credenciales</div></div></div>
+        <div class="fcard">
+          <div class="fcard-title">Sectores de empresa</div>
+          <div class="fcard-sub">Aparecen en el filtro del directorio y en los formularios. Un sector por línea.</div>
+          <div class="fg"><label>Sectores</label><textarea id="sectoresInput" style="min-height:200px;font-size:13px"></textarea></div>
+          <div style="margin-top:16px"><button class="btn-sub" onclick="guardarSectores()">Guardar sectores →</button></div>
+        </div>
+        <div class="fcard">
+          <div class="fcard-title">Credenciales del sistema</div>
+          <div class="fcard-sub">Para cambiarlas edita el HTML directamente hasta migrar a Firebase.</div>
+          <div style="background:var(--bg);border-radius:8px;padding:16px;font-size:13px;font-family:monospace;color:var(--body);line-height:2.2;border:1px solid var(--bdr)">
+            <div>🔐 Admin: promonteria / admin2026PM!</div>
+            <div>🔐 Admin: agencia / boletin2026!</div>
+            <div>👤 Miembros: miembro / miembro2026!</div>
+            <div>👤 Miembros: directivo / directivo2026PM!</div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const ADMINS={'promonteria':'admin2026PM!','agencia':'boletin2026!'};
+const db={get:k=>{try{return JSON.parse(localStorage.getItem('pm_'+k)||'[]')}catch(e){return[]}},set:(k,v)=>localStorage.setItem('pm_'+k,JSON.stringify(v)),getObj:(k,d)=>{try{return JSON.parse(localStorage.getItem('pm_'+k)||JSON.stringify(d))}catch(e){return d}},setObj:(k,v)=>localStorage.setItem('pm_'+k,JSON.stringify(v))};
+function login(){const u=document.getElementById('lUser').value.trim(),p=document.getElementById('lPass').value;if(ADMINS[u]&&ADMINS[u]===p){sessionStorage.setItem('pm_aauth','1');document.getElementById('loginScreen').style.display='none';document.getElementById('panel').style.display='block';initAdmin();}else document.getElementById('loginErr').style.display='block';}
+function logout(){sessionStorage.removeItem('pm_aauth');location.reload();}
+function initAdmin(){document.getElementById('bFecha').value=new Date().toISOString().slice(0,7);const cfg=getSectores();['bSector','oSector','mSector'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">Seleccione</option>'+cfg.map(s=>`<option>${s}</option>`).join('');});document.getElementById('sectoresInput').value=cfg.join('\n');updateResumen();renderTblBoletines();renderTblEventos();renderTblOportunidades();renderTblMiembros('');}
+function getSectores(){return db.getObj('config_sectores',{sectores:['Salud','Construcción','Educación','Tecnología','Financiero','Energía','Agropecuario','Alimentos y Bebidas','Comercio','Logística y Transporte','Medios y Publicidad','Legal y Consultoría','Hotelería y Turismo','Industrial y Manufactura','Ambiental y Servicios','Seguridad','Servicios Profesionales','Otros']}).sectores;}
+function showView(id,el){document.querySelectorAll('.aview').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.aitem').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');if(el)el.classList.add('active');}
+function updateResumen(){document.getElementById('rBol').textContent=db.get('boletines').length;document.getElementById('rEv').textContent=db.get('eventos').length;document.getElementById('rOp').textContent=db.get('oportunidades').length;document.getElementById('rMi').textContent=db.get('miembros').length;document.getElementById('cntMiembros').textContent=db.get('miembros').length+' miembros';}
+function toast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.style.background=err?'#DC2626':'#16A34A';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function v(id){return document.getElementById(id).value.trim();}
+function limpiar(pfx,fields){fields.split(',').forEach(f=>{const el=document.getElementById(pfx+f);if(el)el.value='';});}
+function fmtDate(d){if(!d)return'—';return new Date(d+'T00:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});}
+function fmtMes(m){if(!m)return'—';const[y,mo]=m.split('-');return new Date(y,mo-1,1).toLocaleDateString('es-CO',{month:'long',year:'numeric'});}
+function badge(t,cl){return`<span class="badge ${cl}">${t}</span>`;}
+function emptyRow(c,m){return`<tr><td colspan="${c}" style="text-align:center;padding:32px;color:var(--muted)">${m}</td></tr>`;}
+function publicarBoletin(){const titulo=v('bTitulo'),fecha=v('bFecha'),sector=v('bSector'),resumen=v('bResumen'),urlVer=v('bUrlVer'),urlDl=v('bUrlDl');if(!titulo||!fecha||!sector||!resumen||!urlVer||!urlDl){toast('Complete todos los campos obligatorios (*)',true);return;}const arr=db.get('boletines');arr.unshift({id:Date.now(),titulo,fecha,sector,resumen,tags:v('bTags').split(',').map(t=>t.trim()).filter(Boolean),urlVer,urlDl,creadoEn:new Date().toISOString()});db.set('boletines',arr);limpiar('b','Titulo,Resumen,Tags,UrlVer,UrlDl');renderTblBoletines();updateResumen();toast('✓ Boletín publicado exitosamente');}
+function eliminarBoletin(id){if(!confirm('¿Eliminar?'))return;db.set('boletines',db.get('boletines').filter(x=>x.id!==id));renderTblBoletines();updateResumen();toast('Eliminado');}
+function renderTblBoletines(){const arr=db.get('boletines'),tb=document.getElementById('tblBoletines');if(!arr.length){tb.innerHTML=emptyRow(4,'Sin boletines publicados');return;}tb.innerHTML=arr.map(b=>`<tr><td><div style="font-weight:600;color:var(--ink)">${b.titulo}</div><div style="font-size:11px;color:var(--muted)">${(b.resumen||'').slice(0,60)}...</div></td><td>${fmtMes(b.fecha)}</td><td>${badge(b.sector,'bp')}</td><td style="white-space:nowrap"><a href="${b.urlVer}" target="_blank" class="btn-edit">Ver</a> <button class="btn-del" onclick="eliminarBoletin(${b.id})">✕</button></td></tr>`).join('');}
+function publicarEvento(){const titulo=v('eTitulo'),fecha=v('eFecha'),descripcion=v('eDescripcion');if(!titulo||!fecha||!descripcion){toast('Título, fecha y descripción son obligatorios',true);return;}const arr=db.get('eventos');arr.unshift({id:Date.now(),titulo,fecha,hora:v('eHora'),lugar:v('eLugar'),modalidad:v('eModalidad'),cupos:v('eCupos'),descripcion,url:v('eUrl'),creadoEn:new Date().toISOString()});arr.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));db.set('eventos',arr);limpiar('e','Titulo,Hora,Lugar,Cupos,Descripcion,Url');renderTblEventos();updateResumen();toast('✓ Evento publicado exitosamente');}
+function eliminarEvento(id){if(!confirm('¿Eliminar?'))return;db.set('eventos',db.get('eventos').filter(x=>x.id!==id));renderTblEventos();updateResumen();toast('Eliminado');}
+function renderTblEventos(){const arr=db.get('eventos'),tb=document.getElementById('tblEventos');if(!arr.length){tb.innerHTML=emptyRow(4,'Sin eventos publicados');return;}tb.innerHTML=arr.map(e=>`<tr><td><div style="font-weight:600;color:var(--ink)">${e.titulo}</div>${e.lugar?`<div style="font-size:11px;color:var(--muted)">📍 ${e.lugar}</div>`:''}</td><td>${fmtDate(e.fecha)}${e.hora?` · ${e.hora}`:''}</td><td>${badge(e.modalidad||'Presencial','bg')}</td><td style="white-space:nowrap">${e.url?`<a href="${e.url}" target="_blank" class="btn-edit">Ver</a> `:''}<button class="btn-del" onclick="eliminarEvento(${e.id})">✕</button></td></tr>`).join('');}
+function publicarOportunidad(){const nombre=v('oNombre'),dirigidoA=v('oDirigidoA'),sector=v('oSector'),descripcion=v('oDescripcion'),url=v('oUrl');if(!nombre||!dirigidoA||!sector||!descripcion||!url){toast('Complete todos los campos obligatorios (*)',true);return;}const arr=db.get('oportunidades');arr.unshift({id:Date.now(),nombre,dirigidoA,sector,monto:v('oMonto'),fechaLimite:v('oFechaLimite'),descripcion,url,creadoEn:new Date().toISOString()});db.set('oportunidades',arr);limpiar('o','Nombre,DirigidoA,Monto,FechaLimite,Descripcion,Url');renderTblOportunidades();updateResumen();toast('✓ Oportunidad publicada exitosamente');}
+function eliminarOportunidad(id){if(!confirm('¿Eliminar?'))return;db.set('oportunidades',db.get('oportunidades').filter(x=>x.id!==id));renderTblOportunidades();updateResumen();toast('Eliminada');}
+function renderTblOportunidades(){const arr=db.get('oportunidades'),tb=document.getElementById('tblOportunidades');if(!arr.length){tb.innerHTML=emptyRow(5,'Sin oportunidades publicadas');return;}tb.innerHTML=arr.map(o=>`<tr><td><div style="font-weight:600;color:var(--ink)">${o.nombre}</div><div style="font-size:11px;color:var(--muted)">Dirigido a: ${o.dirigidoA}</div></td><td>${badge(o.sector,'bp')}</td><td style="font-weight:600;color:#065F46">${o.monto||'—'}</td><td>${o.fechaLimite?fmtDate(o.fechaLimite):'—'}</td><td><a href="${o.url}" target="_blank" class="btn-edit">Ver</a> <button class="btn-del" onclick="eliminarOportunidad(${o.id})">✕</button></td></tr>`).join('');}
+function publicarMiembro(){const nombre=v('mNombre'),sector=v('mSector');if(!nombre||!sector){toast('Nombre y sector son obligatorios',true);return;}const arr=db.get('miembros');arr.push({id:Date.now(),nombre,sector,telefono:v('mTelefono'),email:v('mEmail'),web:v('mWeb'),direccion:v('mDireccion'),descripcion:v('mDescripcion'),logo:v('mLogo'),creadoEn:new Date().toISOString()});arr.sort((a,b)=>a.nombre.localeCompare(b.nombre));db.set('miembros',arr);limpiar('m','Nombre,Telefono,Email,Web,Direccion,Descripcion,Logo');renderTblMiembros('');updateResumen();toast('✓ Miembro agregado al directorio');}
+function eliminarMiembro(id){if(!confirm('¿Eliminar este miembro?'))return;db.set('miembros',db.get('miembros').filter(x=>x.id!==id));renderTblMiembros('');updateResumen();toast('Miembro eliminado');}
+function renderTblMiembros(q=''){let arr=db.get('miembros');if(q)arr=arr.filter(m=>(m.nombre+m.sector+(m.descripcion||'')).toLowerCase().includes(q.toLowerCase()));document.getElementById('cntMiembros').textContent=db.get('miembros').length+' miembros registrados';const tb=document.getElementById('tblMiembros');if(!arr.length){tb.innerHTML=emptyRow(5,q?'Sin resultados':'Sin miembros registrados');return;}tb.innerHTML=arr.map(m=>`<tr><td><div style="font-weight:600;color:var(--ink)">${m.nombre}</div>${m.web?`<div style="font-size:11px;color:var(--muted)">${m.web}</div>`:''}</td><td>${badge(m.sector,'bp')}</td><td style="font-size:12px">${m.telefono||'—'}</td><td style="font-size:12px">${m.email?`<a href="mailto:${m.email}" style="color:var(--p)">${m.email}</a>`:'—'}</td><td><button class="btn-del" onclick="eliminarMiembro(${m.id})">✕ Eliminar</button></td></tr>`).join('');}
+function guardarSectores(){const sectores=document.getElementById('sectoresInput').value.split('\n').map(s=>s.trim()).filter(Boolean);db.setObj('config_sectores',{sectores});['bSector','oSector','mSector'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">Seleccione</option>'+sectores.map(s=>`<option>${s}</option>`).join('');});toast('✓ Sectores guardados exitosamente');}
+if(sessionStorage.getItem('pm_aauth')){document.getElementById('loginScreen').style.display='none';document.getElementById('panel').style.display='block';document.addEventListener('DOMContentLoaded',initAdmin);if(document.readyState!=='loading')initAdmin();}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none')login();});
+</script>
+</body>
+</html>
