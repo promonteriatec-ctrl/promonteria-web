@@ -82,7 +82,14 @@ h2.big.w span{background:linear-gradient(135deg,#C084FC,#67E8F9);-webkit-backgro
   font-size:13.5px;font-weight:500;
   transition:color .18s,background .18s;white-space:nowrap;
 }
-.nav-links a:hover{color:#fff;background:rgba(255,255,255,.12)}
+.nav-links>li>a:hover{color:#fff;background:rgba(255,255,255,.12)}
+.nav-dropdown{position:relative}
+.nav-dropdown-menu{position:absolute;top:calc(100% + 16px);left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--bdr);border-radius:12px;padding:6px;min-width:230px;box-shadow:0 8px 32px rgba(0,0,0,.15);opacity:0;visibility:hidden;transition:all .2s ease;z-index:1000;pointer-events:none}
+.nav-dropdown-menu::before{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);width:10px;height:10px;background:#fff;border-left:1px solid var(--bdr);border-top:1px solid var(--bdr)}
+.nav-dropdown:hover .nav-dropdown-menu{opacity:1;visibility:visible;top:calc(100% + 8px);pointer-events:all}
+.nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink)!important;text-decoration:none;transition:all .15s;background:none!important}
+.nav-dropdown-menu a:hover{background:var(--p-lt)!important;color:var(--p)!important}
+.nav-dropdown-menu a .di{font-size:17px;width:24px;text-align:center}
 .nav-cta{background:rgba(255,255,255,.15)!important;color:#fff!important;font-weight:600!important;border:1px solid rgba(255,255,255,.25)}
 .nav-cta:hover{background:rgba(255,255,255,.25)!important}
 .hamburger{display:none;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:7px;width:38px;height:38px;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
@@ -424,7 +431,15 @@ h1.hero-h1 .word-lift:last-child {
   </a>
   <ul class="nav-links">
     <li><a href="#porque">¿Por qué Córdoba?</a></li>
-    <li><a href="#" onclick="openDrawer(event)">Sectores</a></li>
+    <li class="nav-dropdown">
+      <a href="#sectores">Sectores ▾</a>
+    <div class="nav-dropdown-menu">
+      <a href="agroindustria.html">Agroindustria & Logistica</a>
+      <a href="energia.html">Energías para la Transición</a>
+      <a href="turismo.html">Infraestructura Turística</a>
+      <a href="industrializacion.html">Bioeconomía</a>
+    </div>
+    </li>
     <li><a href="#nosotros">Nosotros</a></li>
     <li><a href="#proyectos">Banco de Proyectos</a></li>
     <li><a href="#tierras">Banco de Tierras</a></li>
@@ -441,7 +456,7 @@ h1.hero-h1 .word-lift:last-child {
 <div class="mob-menu" id="mobMenu">
   <button class="mob-close" onclick="toggleMob()">✕</button>
   <a href="#porque" onclick="toggleMob()">¿Por qué Córdoba?</a>
-  <a href="#" onclick="toggleMob();openDrawer(event)">Sectores</a>
+  <a href="#sectores" onclick="toggleMob()">Sectores</a>
   <a href="#nosotros" onclick="toggleMob()">Nosotros</a>
   <a href="#proyectos" onclick="toggleMob()">Banco de Proyectos</a>
   <a href="#tierras" onclick="toggleMob()">Banco de Tierras</a>
@@ -518,9 +533,9 @@ h1.hero-h1 .word-lift:last-child {
         Agencia de Promoción de Inversión · Córdoba, Colombia
       </div>
       <h1 class="hero-h1 reveal d1" style="color:#fff">
-        <span class="word-lift">El</span> <span class="word-lift">siguiente</span><br>
-        <span class="word-lift">gran</span> <span class="word-lift">territorio</span><br>
-        <span class="word-lift">de</span> <span class="word-lift" style="background:linear-gradient(135deg,#C084FC 0%,#67E8F9 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">oportunidad</span>
+        <span class="word-lift">Invierte en </span> <span class="word-lift">el</span><br>
+        <span class="word-lift">corazón</span> <span class="word-lift">del</span><br>
+        <span class="word-lift">Caribe</span> <span class="word-lift" style="background:linear-gradient(135deg,#C084FC 0%,#67E8F9 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Colombiano</span>
       </h1>
       <div class="hero-actions reveal d2" style="margin-bottom:0;justify-content:center">
         <a href="#porque" class="btn btn-white">¿Por qué Córdoba? →</a>
@@ -562,7 +577,7 @@ h1.hero-h1 .word-lift:last-child {
         Tierra, energía<br>y <span style="color:#fff;-webkit-text-fill-color:#fff">biodiversidad</span>
       </h2>
       <p class="hero-sub reveal d2" style="font-size:clamp(16px,1.8vw,20px);margin-bottom:32px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.95),0 1px 4px rgba(0,0,0,.9);font-weight:600">
-        ProMontería conecta a los mejores inversionistas con las oportunidades más estratégicas del norte de Colombia.
+        Córdoba es un territorio de oportunidades reales: agroindustria, energías renovables, turismo de naturaleza y logística estratégica.
       </p>
       <div class="hero-actions reveal d2">
         <a href="#contacto" class="btn btn-white">Explorar oportunidades</a>
@@ -574,12 +589,12 @@ h1.hero-h1 .word-lift:last-child {
           <div class="hstat-l" style="color:rgba(255,255,255,.7)">Frontera agrícola</div>
         </div>
         <div class="hstat">
-          <div class="hstat-n" style="color:#fff">4.383<sub style="color:#e9d5ff">MW</sub></div>
-          <div class="hstat-l" style="color:rgba(255,255,255,.7)">Energía 2028</div>
+          <div class="hstat-n" style="color:#fff">2.300<sub style="color:#e9d5ff">MW</sub></div>
+          <div class="hstat-l" style="color:rgba(255,255,255,.7)">Proyectados Energía 2028</div>
         </div>
         <div class="hstat">
-          <div class="hstat-n" style="color:#fff">4<sub style="color:#e9d5ff">puertos</sub></div>
-          <div class="hstat-l" style="color:rgba(255,255,255,.7)">Acceso al Caribe</div>
+          <div class="hstat-n" style="color:#fff">110<sub style="color:#e9d5ff">km</sub></div>
+          <div class="hstat-l" style="color:rgba(255,255,255,.7)">Al puerto más cercano</div>
         </div>
       </div>
     </div>
@@ -596,43 +611,43 @@ h1.hero-h1 .word-lift:last-child {
         <div class="label">¿Por qué Córdoba?</div>
         <h2 class="big">Un territorio diseñado<br>para <span>grandes inversiones</span></h2>
       </div>
-      <p class="sub" style="padding-top:44px">Posición estratégica en el Caribe colombiano, acceso a cuatro puertos, tierra disponible a precios competitivos y una economía en profunda transformación.</p>
+      <p class="sub" style="padding-top:44px">Posición estratégica en el Caribe colombiano, abundantes recursos naturales y economía en transformación, Córdoba es el nuevo destino de inversión productiva del norte de Colombia.</p>
     </div>
     <div class="why-grid reveal">
       <div class="why-card">
         <div class="why-n">01</div>
-        <h3>Posición estratégica Caribe</h3>
-        <p>Conectividad 4G y acceso a puertos de Barranquilla, Cartagena, Urabá y Santa Marta. Exportaciones a mercados globales sin fricción.</p>
+        <h3>Ubicación estratégica en el Caribe</h3>
+        <p>Conectividad vial 4G y acceso a cuatro puertos del Caribe y Urabá facilitan operaciones eficientes de exportación e importación a mercados globales.</p>
         <span class="why-tag">Logística</span>
       </div>
       <div class="why-card">
         <div class="why-n">02</div>
         <h3>Riqueza natural &amp; biodiversidad</h3>
-        <p>Río Sinú, humedales estratégicos, 580 especies de aves. Mayor potencial de bioeconomía del Caribe colombiano.</p>
+        <p>Río Sinú, humedales estratégicos, 580 especies de aves y condiciones climáticas tropicales estables. Potencial para bioeconomía y ecoturismo.</p>
         <span class="why-tag">Naturaleza</span>
       </div>
       <div class="why-card">
         <div class="why-n">03</div>
         <h3>Talento humano disponible</h3>
-        <p>1.9 millones de habitantes, oferta técnica y universitaria creciente, costos laborales competitivos.</p>
+        <p>1.9 millones de habitantes con oferta técnica, tecnológica y universitaria. Costos laborales competitivos con experiencia en agroindustria, logística y manufactura.</p>
         <span class="why-tag">Capital humano</span>
       </div>
       <div class="why-card">
         <div class="why-n">04</div>
-        <h3>Beneficios tributarios activos</h3>
-        <p>Zonas Francas, megainversiones y beneficios ZOMAC. ProMontería optimiza su estructura tributaria.</p>
+        <h3>Frontera agrícola excepcional</h3>
+        <p>1.880.812 (ha) equivalen al 75% del territorio. Producción permanente todo el año con potencial en cadenas de alto valor agregado.</p>
         <span class="why-tag">Marco legal</span>
       </div>
       <div class="why-card">
         <div class="why-n">05</div>
-        <h3>Hub energético emergente</h3>
-        <p>4.383 MW en desarrollo. Primer departamento en superar su meta renovable. Energía limpia y barata.</p>
+        <h3>Hub energético en crecimiento</h3>
+        <p>1.100 MW de capacidad actual y proyección de 2.383 MW para 2028. Tercer departamento en reservas de gas natural con alto potencial solar.</p>
         <span class="why-tag">Energía</span>
       </div>
       <div class="why-card">
         <div class="why-n">06</div>
-        <h3>Tierra a precios competitivos</h3>
-        <p>Portafolio activo con predios verificados. Precios 2–8x por debajo de la media nacional.</p>
+        <h3>Acompañamiento sin costo</h3>
+        <p>ProMontería ofrece servicios confidenciales y gratuitos en todas las fases: exploratoria, instalación y operación. Reducimos riesgos y aceleramos decisiones.</p>
         <span class="why-tag">Banco de Tierras</span>
       </div>
     </div>
@@ -731,14 +746,14 @@ h1.hero-h1 .word-lift:last-child {
     </div>
     <div class="ncard-w reveal">
       <div class="ncard">
-        <div class="ncard-lbl">Hectáreas productivas</div>
-        <div class="ncard-n">1.88M</div>
-        <p class="ncard-d">Frontera agrícola con potencial para cultivos de exportación y ganadería intensiva.</p>
+        <div class="ncard-lbl">Costa sobre el Caribe</div>
+        <div class="ncard-n">124km</div>
+        <p class="ncard-d">Incluyendo la Bahía de Cispatá, sitio Ramsar con manglar y potencial ecoturístico de clase mundial.</p>
       </div>
       <div class="ncard">
-        <div class="ncard-lbl">Energía proyectada 2028</div>
-        <div class="ncard-n">4.383</div>
-        <p class="ncard-d">Megavatios en proyectos de energía solar y gas. Primer territorio en alcanzar meta renovable.</p>
+        <div class="ncard-lbl">Radiación Solar Diaria</div>
+        <div class="ncard-n">4.9 kWh/m²</div>
+        <p class="ncard-d">Uno de los mayores potenciales para energía solar fotovoltaica en Colombia.</p>
       </div>
       <div class="ncard">
         <div class="ncard-lbl">Especies de aves</div>
@@ -759,7 +774,7 @@ h1.hero-h1 .word-lift:last-child {
       <div class="reveal">
         <div class="label">Nosotros</div>
         <h2 class="big" style="margin-bottom:20px">La agencia que convierte el <span>potencial de Córdoba</span> en inversión real</h2>
-        <p class="sub" style="margin-bottom:28px">ProMontería es la Agencia de Promoción de Inversión del departamento de Córdoba. Identificamos oportunidades verificadas, conectamos inversionistas con proyectos estratégicos y acompañamos cada etapa del proceso.</p>
+        <p class="sub" style="margin-bottom:28px">ProMontería es la Agencia de Promoción de Inversión del departamento de Córdoba. Acompañamos a los inversionistas en cada etapa: información estratégica, articulación institucional y conexión con actores clave del territorio.</p>
         <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px">
           <div style="display:flex;align-items:flex-start;gap:12px">
             <div style="width:36px;height:36px;border-radius:8px;background:var(--p-lt);border:1px solid var(--p-mid);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🏛️</div>
@@ -796,9 +811,9 @@ h1.hero-h1 .word-lift:last-child {
               <div style="width:2px;height:48px;background:linear-gradient(to bottom,var(--p),var(--p-mid));margin-top:4px"></div>
             </div>
             <div style="padding-top:10px;padding-bottom:32px">
-              <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--p);margin-bottom:4px">Paso 01</div>
-              <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em">Identificamos</div>
-              <p style="font-size:13.5px;color:var(--muted);line-height:1.65">Analizamos el territorio y mapeamos oportunidades verificadas en los 4 sectores estratégicos de Córdoba. Solo presentamos proyectos con potencial real.</p>
+              <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--p);margin-bottom:4px">Fase 01</div>
+              <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em">Exploratoria</div>
+              <p style="font-size:13.5px;color:var(--muted);line-height:1.65">Análisis estratégico del territorio enfocado en la promoción de inversión, que integra la identificación de oportunidades, visitas exploratorias y articulación público-privada.</p>
             </div>
           </div>
 
@@ -808,9 +823,9 @@ h1.hero-h1 .word-lift:last-child {
               <div style="width:2px;height:48px;background:linear-gradient(to bottom,var(--p),var(--p-mid));margin-top:4px"></div>
             </div>
             <div style="padding-top:10px;padding-bottom:32px">
-              <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--p);margin-bottom:4px">Paso 02</div>
-              <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em">Conectamos</div>
-              <p style="font-size:13.5px;color:var(--muted);line-height:1.65">Le conectamos directamente con proyectos, tierras verificadas, aliados estratégicos, instituciones y actores clave del ecosistema productivo de Córdoba.</p>
+              <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--p);margin-bottom:4px">Fase 02</div>
+              <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em">Instalación</div>
+              <p style="font-size:13.5px;color:var(--muted);line-height:1.65">Acompañamiento integral al inversionista mediante apoyo en trámites y permisos, articulación institucional y conexión con proveedores estratégicos, facilitando la implementación de proyectos en el territorio.</p>
             </div>
           </div>
 
@@ -819,9 +834,9 @@ h1.hero-h1 .word-lift:last-child {
               <div style="width:52px;height:52px;border-radius:50%;background:var(--p);display:flex;align-items:center;justify-content:center;font-size:22px">🚀</div>
             </div>
             <div style="padding-top:10px">
-              <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--p);margin-bottom:4px">Paso 03</div>
-              <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em">Acompañamos</div>
-              <p style="font-size:13.5px;color:var(--muted);line-height:1.65">Desde la exploración inicial hasta la operación en marcha. Trámites, licencias, relacionamiento institucional y seguimiento post-inversión sin costo.</p>
+              <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--p);margin-bottom:4px">Fase 03</div>
+              <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em">Operación</div>
+              <p style="font-size:13.5px;color:var(--muted);line-height:1.65">Acompañamiento continuo a la inversión mediante apoyo a la expansión y reinversión, solución de cuellos de botella, conexión con el ecosistema productivo y seguimiento post-instalación para asegurar sostenibilidad y crecimiento.</p>
             </div>
           </div>
 
@@ -888,13 +903,6 @@ h1.hero-h1 .word-lift:last-child {
               <div>
                 <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">Acompañamiento sin costo</div>
                 <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.55">El proceso de postulación y evaluación inicial es completamente gratuito para promotores de proyectos en Córdoba.</div>
-              </div>
-            </div>
-            <div style="display:flex;gap:14px;align-items:flex-start">
-              <div style="width:40px;height:40px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚡</div>
-              <div>
-                <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:4px">Respuesta en 5 días hábiles</div>
-                <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.55">Evaluamos tu postulación y te contactamos en menos de una semana con retroalimentación concreta.</div>
               </div>
             </div>
           </div>
@@ -1024,7 +1032,7 @@ h1.hero-h1 .word-lift:last-child {
             <div style="width:42px;height:42px;border-radius:10px;background:#fff;border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✉️</div>
             <div>
               <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);margin-bottom:2px">Email</div>
-              <div style="font-size:14px;color:var(--body)">info@promonteria.com</div>
+              <div style="font-size:14px;color:var(--body)">comunicaciones@promonteria.com</div>
             </div>
           </div>
         </div>
@@ -1124,7 +1132,15 @@ h1.hero-h1 .word-lift:last-child {
         <div class="ft-col-title">Navegación</div>
         <ul class="ft-links">
           <li><a href="#porque">¿Por qué Córdoba?</a></li>
-          <li><a href="#" onclick="openDrawer(event)">Sectores</a></li>
+          <li class="nav-dropdown">
+           <a href="#sectores">Sectores ▾</a>
+           <div class="nav-dropdown-menu">
+              <a href="agroindustria.html"><span class="di">🌾</span>Agroindustria & Bioeconomía</a>
+              <a href="energia.html"><span class="di">⚡</span>Energías para la Transición</a>
+              <a href="turismo.html"><span class="di">🏞️</span>Infraestructura Turística</a>
+             <a href="industrializacion.html"><span class="di">🏭</span>Industrialización Verde</a>
+           </div>
+          </li>
           <li><a href="#nosotros">Nosotros</a></li>
           <li><a href="#proyectos">Banco de Proyectos</a></li>
           <li><a href="#tierras">Banco de Tierras</a></li>
@@ -1162,6 +1178,23 @@ h1.hero-h1 .word-lift:last-child {
 </footer>
 
 <script>
+// Dropdown sectores con JS
+document.querySelectorAll('.nav-dropdown').forEach(item => {
+  const menu = item.querySelector('.nav-dropdown-menu');
+  item.addEventListener('mouseenter', () => {
+    menu.style.opacity = '1';
+    menu.style.visibility = 'visible';
+    menu.style.top = 'calc(100% + 8px)';
+    menu.style.pointerEvents = 'all';
+  });
+  item.addEventListener('mouseleave', () => {
+    menu.style.opacity = '0';
+    menu.style.visibility = 'hidden';
+    menu.style.top = 'calc(100% + 16px)';
+    menu.style.pointerEvents = 'none';
+  });
+});
+
 window.addEventListener('scroll',()=>{
   // Nav is always purple, no color change needed
 },{passive:true});

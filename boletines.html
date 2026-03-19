@@ -362,6 +362,14 @@ footer{background:var(--p-d);color:#fff;padding:56px clamp(20px,4vw,64px) 28px}
 @media(max-width:640px) {
   .boletines-grid { grid-template-columns: 1fr; }
 }
+/* DROPDOWN SECTORES */
+.nav-dropdown{position:relative}
+.nav-dropdown-menu{position:absolute;top:calc(100% + 16px);left:50%;transform:translateX(-50%);background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:6px;min-width:240px;box-shadow:0 8px 32px rgba(0,0,0,.15);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease,top .2s ease;z-index:1000;pointer-events:none}
+.nav-dropdown-menu::before{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%) rotate(45deg);width:10px;height:10px;background:#fff;border-left:1px solid #E5E7EB;border-top:1px solid #E5E7EB}
+.nav-dropdown:hover .nav-dropdown-menu{opacity:1;visibility:visible;top:calc(100% + 8px);pointer-events:all}
+.nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#0D0D12!important;text-decoration:none;transition:all .15s;background:none!important;white-space:nowrap}
+.nav-dropdown-menu a:hover{background:#F3E8FF!important;color:#37006C!important}
+.nav-dropdown-menu a .di{font-size:17px;width:24px;text-align:center;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -372,7 +380,15 @@ footer{background:var(--p-d);color:#fff;padding:56px clamp(20px,4vw,64px) 28px}
   </a>
   <ul class="nav-links">
     <li><a href="index.html#porque">¿Por qué Córdoba?</a></li>
-    <li><a href="index.html#sectores">Sectores</a></li>
+    <li class="nav-dropdown">
+  <a href="index.html#sectores">Sectores ▾</a>
+  <div class="nav-dropdown-menu">
+    <a href="agroindustria.html">Agroindustria & Logistica</a>
+    <a href="energia.html">Energías para la Transición</a>
+    <a href="turismo.html">Infraestructura Turística</a>
+    <a href="industrializacion.html">Bioeconomía</a>
+  </div>
+</li>
     <li><a href="index.html#nosotros">Nosotros</a></li>
     <li><a href="index.html#proyectos">Banco de Proyectos</a></li>
     <li><a href="index.html#tierras">Banco de Tierras</a></li>
@@ -641,6 +657,13 @@ function filtrar(sector, btn) {
     }
   });
 }
+// Dropdown sectores
+document.querySelectorAll('.nav-dropdown').forEach(item=>{
+  const menu=item.querySelector('.nav-dropdown-menu');
+  if(!menu)return;
+  item.addEventListener('mouseenter',()=>{menu.style.cssText='opacity:1;visibility:visible;top:calc(100% + 8px);pointer-events:all'});
+  item.addEventListener('mouseleave',()=>{menu.style.cssText='opacity:0;visibility:hidden;top:calc(100% + 16px);pointer-events:none'});
+});
 </script>
 </body>
 </html>
