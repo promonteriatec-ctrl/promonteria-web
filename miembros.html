@@ -161,6 +161,50 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--i
   .miembros-grid{grid-template-columns:1fr}
 }
 </style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFIxUb0WMJLIitGTu1x_bhXG1bhFOy1Ac",
+    authDomain: "promonteria-web.firebaseapp.com",
+    projectId: "promonteria-web",
+    storageBucket: "promonteria-web.firebasestorage.app",
+    messagingSenderId: "427153323484",
+    appId: "1:427153323484:web:ddbce6136af3fd62484b19"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  const MIEMBRO_EMAILS = ['jquintero@innmedios.com'];
+
+  window.login = async function() {
+    const email = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch(e) {
+      document.getElementById('loginError').style.display='block';
+    }
+  };
+
+  window.logout = async function() {
+    await signOut(auth);
+    location.reload();
+  };
+
+  onAuthStateChanged(auth, user => {
+    if(user) {
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('panel').style.display='block';
+      if(typeof initPanel === 'function') initPanel();
+    } else {
+      document.getElementById('loginScreen').style.display='flex';
+      document.getElementById('panel').style.display='none';
+    }
+  });
+</script>
 </head>
 <body>
 
@@ -176,8 +220,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--i
       <div class="login-sub">Accede a eventos, oportunidades de inversión y el directorio de empresas aliadas de ProMontería.</div>
     </div>
     <div class="input-group">
-      <label>Usuario</label>
-      <input type="text" id="loginUser" placeholder="Tu usuario" autocomplete="username">
+      <label>Correo electrónico</label>
+      <input type="email" id="loginUser" placeholder="correo@ejemplo.com" autocomplete="email">
     </div>
     <div class="input-group">
       <label>Contraseña</label>
@@ -312,30 +356,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--i
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CREDENCIALES ──────────────────────────────────────────────────────────────
-const USERS = { 'miembro':'miembro2026!', 'directivo':'directivo2026PM!' };
+
 
 // ── STORAGE ───────────────────────────────────────────────────────────────────
 const db = {
   get: k => { try { return JSON.parse(localStorage.getItem('pm_'+k)||'[]'); } catch(e){return [];} },
   getObj: (k,d={}) => { try { return JSON.parse(localStorage.getItem('pm_'+k)||JSON.stringify(d)); } catch(e){return d;} }
 };
-
-// ── LOGIN ──────────────────────────────────────────────────────────────────────
-function login() {
-  const user = document.getElementById('loginUser').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  if(USERS[user] && USERS[user]===pass) {
-    sessionStorage.setItem('pm_mauth','1');
-    sessionStorage.setItem('pm_muser',user);
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('panel').style.display='block';
-    initPanel();
-  } else {
-    document.getElementById('loginError').style.display='block';
-  }
-}
-function logout() { sessionStorage.clear(); location.reload(); }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 function initPanel() {
@@ -540,13 +567,7 @@ function renderMiembros() {
   filtrarMiembros();
 }
 
-// ── AUTO LOGIN ────────────────────────────────────────────────────────────────
-if(sessionStorage.getItem('pm_mauth')) {
-  document.getElementById('loginScreen').style.display='none';
-  document.getElementById('panel').style.display='block';
-  document.addEventListener('DOMContentLoaded', initPanel);
-  if(document.readyState!=='loading') initPanel();
-}
+
 document.addEventListener('keydown', e=>{
   if(e.key==='Enter' && document.getElementById('loginScreen').style.display!=='none') login();
 });

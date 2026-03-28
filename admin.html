@@ -117,11 +117,17 @@ tr:last-child td{border-bottom:none}
     location.reload();
   };
 
+  const ADMIN_EMAILS = ['promonteriatec@gmail.com'];
+
   onAuthStateChanged(auth, user => {
-    if(user) {
+    if(user && ADMIN_EMAILS.includes(user.email)) {
       document.getElementById('loginScreen').style.display='none';
       document.getElementById('panel').style.display='block';
       if(typeof initAdmin === 'function') initAdmin();
+    } else if(user && !ADMIN_EMAILS.includes(user.email)) {
+      signOut(auth);
+      document.getElementById('loginErr').style.display='block';
+      document.getElementById('loginErr').textContent='No tienes acceso al panel de administración.';
     } else {
       document.getElementById('loginScreen').style.display='flex';
       document.getElementById('panel').style.display='none';
