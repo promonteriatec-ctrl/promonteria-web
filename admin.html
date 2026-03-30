@@ -103,6 +103,11 @@ tr:last-child td{border-bottom:none}
   const auth = getAuth(app);
   const firestore = getFirestore(app);
   window.fsdb = firestore;
+  window.fsCollection = collection;
+  window.fsAddDoc = addDoc;
+  window.fsDeleteDoc = deleteDoc;
+  window.fsDoc = doc;
+  window.fsGetDocs = getDocs;
 
   window.login = async function() {
     const email = document.getElementById('lUser').value.trim();
@@ -331,7 +336,7 @@ async function updateResumen(){
   document.getElementById('rEv').textContent=db.get('eventos').length;
   document.getElementById('rOp').textContent=db.get('oportunidades').length;
   try {
-    const snap=await getDocs(collection(window.fsdb,'miembros'));
+    const snap=await window.fsGetDocs(window.fsCollection(window.fsdb,'miembros'));
     document.getElementById('rMi').textContent=snap.size;
     document.getElementById('cntMiembros').textContent=snap.size+' miembros';
   } catch(e){}
@@ -379,7 +384,7 @@ async function publicarMiembro(){
   if(!nombre||!sector){toast('Nombre y sector son obligatorios',true);return;}
   const miembro={nombre,sector,direccion:v('mDireccion'),web:v('mWeb'),emailCorporativo:v('mEmailCorporativo'),email:v('mEmail'),telefono:v('mTelefono'),contacto:v('mContacto'),descripcion:v('mDescripcion'),logo:v('mLogo'),creadoEn:new Date().toISOString()};
   try {
-    await addDoc(collection(window.fsdb,'miembros'), miembro);
+    await window.fsAddDoc(window.fsCollection(window.fsdb,'miembros'), miembro);
     limpiar('m','Nombre,Direccion,Web,EmailCorporativo,Email,Telefono,Contacto,Descripcion');
     document.getElementById('mLogo').value='';
     document.getElementById('mLogoFile').value='';
@@ -393,7 +398,7 @@ async function publicarMiembro(){
 async function eliminarMiembro(id){
   if(!confirm('¿Eliminar este miembro?'))return;
   try {
-    await deleteDoc(doc(window.fsdb,'miembros',id));
+    await window.fsDeleteDoc(window.fsDoc(window.fsdb,'miembros',id));
     await renderTblMiembros('');
     updateResumen();
     toast('Miembro eliminado');
@@ -401,7 +406,7 @@ async function eliminarMiembro(id){
 }
 async function renderTblMiembros(q=''){
   try {
-    const snap = await getDocs(collection(window.fsdb,'miembros'));
+    const snap = await window.fsGetDocs(window.fsCollection(window.fsdb,'miembros'));
     let arr = snap.docs.map(d=>({...d.data(), _id:d.id}));
     arr.sort((a,b)=>a.nombre.localeCompare(b.nombre));
     if(q) arr=arr.filter(m=>(m.nombre+m.sector+(m.descripcion||'')).toLowerCase().includes(q.toLowerCase()));
