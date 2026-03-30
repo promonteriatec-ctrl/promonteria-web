@@ -179,6 +179,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--i
   const auth = getAuth(app);
   const fsdb = getFirestore(app);
   window.fsdb = fsdb;
+  window.fsGetDocs = getDocs;
+  window.fsCollection = collection;
 
   const MIEMBRO_EMAILS = ['jquintero@innmedios.com'];
 
