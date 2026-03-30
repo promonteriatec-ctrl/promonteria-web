@@ -540,7 +540,7 @@ async function filtrarMiembros() {
   const grid = document.getElementById('miembrosGrid');
   isEmpty(grid, '⏳', 'Cargando...', '');
   try {
-    const snap = await getDocs(collection(window.fsdb, 'miembros'));
+    const snap = await window.fsGetDocs(window.fsCollection(window.fsdb, 'miembros'));
     let miembros = snap.docs.map(d => ({...d.data(), _id: d.id}));
     miembros.sort((a,b) => a.nombre.localeCompare(b.nombre));
     const q = document.getElementById('searchMiembros').value.toLowerCase();
