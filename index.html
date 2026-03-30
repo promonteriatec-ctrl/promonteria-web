@@ -430,6 +430,12 @@ h1.hero-h1 .word-lift:last-child {
   background-clip: unset;
   color: #fff;
 }
+#foto-1 h2 span .word-lift {
+  background: linear-gradient(135deg,#C084FC 0%,#67E8F9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 </style>
 </head>
 <body>
@@ -626,32 +632,32 @@ h1.hero-h1 .word-lift:last-child {
     <div class="why-grid reveal">
       <div class="why-card">
         <div class="why-n">01</div>
-        <h3>Ubicación estratégica en el Caribe</h3>
+        <h3>Nodo que conecta los puertos más importantes del país</h3>
         <p>Conectividad vial 4G y acceso a cuatro puertos del Caribe y Urabá facilitan operaciones eficientes de exportación e importación a mercados globales.</p>
         <span class="why-tag">Logística</span>
       </div>
       <div class="why-card">
         <div class="why-n">02</div>
-        <h3>Riqueza natural &amp; biodiversidad</h3>
-        <p>Río Sinú, humedales estratégicos, 580 especies de aves y condiciones climáticas tropicales estables. Potencial para bioeconomía y ecoturismo.</p>
-        <span class="why-tag">Naturaleza</span>
+        <h3>Potencial en productos forestales no maderables &amp; bioingredientes</h3>
+        <p>Disponibilidad de material forestal para transformación y aprovechamiento en bioingredientes y biomateriales, con aplicaciones en: alimentos, cosmética y farmacéutica.</p>
+        <span class="why-tag">Bioeconomía</span>
       </div>
       <div class="why-card">
         <div class="why-n">03</div>
-        <h3>Talento humano disponible</h3>
-        <p>1.9 millones de habitantes con oferta técnica, tecnológica y universitaria. Costos laborales competitivos con experiencia en agroindustria, logística y manufactura.</p>
-        <span class="why-tag">Capital humano</span>
+        <h3>Corredor estratégico de conectividad y expansión industrial</h3>
+        <p>Eje logístico estratégico con presencia de zona franca permanente, parques industriales y suelo apto para uso industrial, que conecta el Caribe con el interior del país.</p>
+        <span class="why-tag">Industria</span>
       </div>
       <div class="why-card">
         <div class="why-n">04</div>
-        <h3>Frontera agrícola excepcional</h3>
-        <p>1.880.812 (ha) equivalen al 75% del territorio. Producción permanente todo el año con potencial en cadenas de alto valor agregado.</p>
-        <span class="why-tag">Marco legal</span>
+        <h3>Producción agroindustrial los 365 días del año</h3>
+        <p>Córdoba cuenta con un clima tropical y condiciones agroecológicas que permiten una producción los 12 meses del año.</p>
+        <span class="why-tag">Producción</span>
       </div>
       <div class="why-card">
         <div class="why-n">05</div>
         <h3>Hub energético en crecimiento</h3>
-        <p>1.100 MW de capacidad actual y proyección de 2.383 MW para 2028. Tercer departamento en reservas de gas natural con alto potencial solar.</p>
+        <p>1.100 MW de capacidad actual y proyección de 2.300 MW para 2028. Tercer departamento en reservas de gas natural con alto potencial solar.</p>
         <span class="why-tag">Energía</span>
       </div>
       <div class="why-card">
@@ -664,18 +670,57 @@ h1.hero-h1 .word-lift:last-child {
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════
-     FOTO 1 — CÓRDOBA CAMPO / GANADERÍA
-     INSTRUCCIÓN: Cambia el fondo de .foto-cordoba
-     por url('tu-foto-campo.jpg') center/cover
-════════════════════════════════════════════ -->
-<div class="photo-block" id="foto-1">
-  <img src="fotos/agroindustria.jpg" alt="Agroindustria Córdoba" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block">
-  <div class="pb-text reveal">
-    <span class="badge dark" style="margin-bottom:16px;text-shadow:0 1px 6px rgba(0,0,0,.8)">Agroindustria · Caribe colombiano</span>
-    <h2 style="text-shadow:0 2px 16px rgba(0,0,0,.95),0 1px 4px rgba(0,0,0,.9);color:#fff">1.88 millones de hectáreas<br><span style="color:#fff">listas para producir</span></h2>
-    <p style="text-shadow:0 2px 12px rgba(0,0,0,.95),0 1px 4px rgba(0,0,0,.9);color:#fff;font-weight:600">Ganadería, palma de aceite, cacao fino de origen y aguacate Hass. El territorio agrícola más subutilizado y prometedor del norte de Colombia.</p>
-    <button class="btn btn-white" onclick="openDrawer(event)">Ver sector agroindustria →</button>
+<!-- CÓRDOBA PLATAFORMA EXPORTADORA -->
+<div id="foto-1" style="position:relative;width:100%;min-height:580px;overflow:hidden;display:flex;align-items:center;background:#0a0015">
+  <img src="fotos/agroindustria.jpg" alt="Córdoba Plataforma Exportadora" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:.45">
+  <div style="position:absolute;inset:0;background:linear-gradient(105deg,rgba(37,0,74,.97) 0%,rgba(55,0,108,.82) 40%,rgba(55,0,108,.2) 75%,transparent 100%)"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,0,21,.8) 0%,transparent 50%)"></div>
+
+  <div class="wrap" style="position:relative;z-index:2;padding-top:72px;padding-bottom:72px;width:100%">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center">
+
+      <!-- IZQUIERDA: TEXTO PRINCIPAL -->
+      <div class="reveal">
+        <div style="display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:20px;border:1px solid rgba(255,255,255,.15);padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.06)">
+          <span style="width:6px;height:6px;border-radius:50%;background:#22C55E;display:inline-block"></span>
+          Caribe Colombiano · Acceso al Mundo
+        </div>
+        <h2 style="font-size:clamp(38px,5vw,64px);font-weight:900;letter-spacing:-.04em;line-height:1.0;color:#fff;margin-bottom:20px">
+          Córdoba<br>
+          <span style="background:linear-gradient(135deg,#C084FC 0%,#67E8F9 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:inline-block">Plataforma<br>Exportadora</span>
+        </h2>
+        <p style="font-size:16px;color:rgba(255,255,255,.65);line-height:1.75;max-width:480px;margin-bottom:32px">
+          124 km de costa sobre el Caribe configuran un eje de salida directa a los mercados de América del Norte, Europa y la Cuenca del Caribe. Córdoba produce, transforma y exporta desde el corazón del norte de Colombia.
+        </p>
+        <a href="agroindustria.html" class="btn btn-white" style="font-size:14px">Explorar agroindustria →</a>
+      </div>
+
+      <!-- DERECHA: MÉTRICAS -->
+      <div class="reveal d1" style="display:flex;flex-direction:column;gap:14px">
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:22px 26px;display:flex;align-items:center;gap:18px;transition:border-color .2s;backdrop-filter:blur(8px)" onmouseenter="this.style.borderColor='rgba(192,132,252,.5)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.12)'">
+          <div style="font-size:36px;font-weight:900;letter-spacing:-.04em;background:linear-gradient(135deg,#C084FC,#67E8F9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;flex-shrink:0">124</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">km de costa sobre el Caribe</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.5">Acceso directo a rutas marítimas internacionales</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:22px 26px;display:flex;align-items:center;gap:18px;transition:border-color .2s;backdrop-filter:blur(8px)" onmouseenter="this.style.borderColor='rgba(192,132,252,.5)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.12)'">
+          <div style="font-size:36px;font-weight:900;letter-spacing:-.04em;background:linear-gradient(135deg,#C084FC,#67E8F9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;flex-shrink:0">1.88M</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">hectáreas productivas</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.5">75% del territorio con vocación agroindustrial activa</div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:22px 26px;display:flex;align-items:center;gap:18px;transition:border-color .2s;backdrop-filter:blur(8px)" onmouseenter="this.style.borderColor='rgba(192,132,252,.5)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.12)'">
+          <div style="font-size:36px;font-weight:900;letter-spacing:-.04em;background:linear-gradient(135deg,#C084FC,#67E8F9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;flex-shrink:0">4</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">sectores exportadores estratégicos</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.5">Agroindustria, energía, turismo e industrialización verde</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
