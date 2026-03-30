@@ -235,18 +235,31 @@ footer{background:var(--p-d);color:#fff;padding:56px clamp(20px,4vw,64px) 28px}
   </div>
 </footer>
 
-<script>
-// Leer datos del localStorage (compartido con admin.html)
-const db = {
-  get: k => { try { return JSON.parse(localStorage.getItem('pm_'+k)||'[]'); } catch(e){return[];} },
-  getObj: (k,d) => { try { return JSON.parse(localStorage.getItem('pm_'+k)||JSON.stringify(d)); } catch(e){return d;} }
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCFIxUb0WMJLIitGTu1x_bhXG1bhFOy1Ac",
+  authDomain: "promonteria-web.firebaseapp.com",
+  projectId: "promonteria-web",
+  storageBucket: "promonteria-web.firebasestorage.app",
+  messagingSenderId: "427153323484",
+  appId: "1:427153323484:web:ddbce6136af3fd62484b19"
 };
+const app = initializeApp(firebaseConfig);
+const fsdb = getFirestore(app);
 
 let sectorActivo = 'Todos';
 let todos = [];
 
-function init() {
-  todos = db.get('miembros');
+async function init() {
+  try {
+    const snap = await getDocs(collection(fsdb, 'miembros'));
+    todos = snap.docs.map(d => ({...d.data(), _id: d.id}));
+    todos.sort((a,b) => a.nombre.localeCompare(b.nombre));
+  } catch(e) { todos = []; }
   // Stats
   document.getElementById('statTotal').textContent = todos.length;
   const sectoresUnicos = [...new Set(todos.map(m=>m.sector).filter(Boolean))];
