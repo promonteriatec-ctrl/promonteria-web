@@ -264,12 +264,27 @@ tr:last-child td{border-bottom:none}
           <div class="fgrid">
             <div class="fg full"><label>Nombre de la empresa *</label><input type="text" id="mNombre" placeholder="Ej: Clínica San Sebastián IPS"></div>
             <div class="fg"><label>Sector *</label><select id="mSector"><option value="">Seleccione</option></select></div>
-            <div class="fg"><label>Teléfono</label><input type="tel" id="mTelefono" placeholder="311 722 5979"></div>
-            <div class="fg"><label>Email</label><input type="email" id="mEmail" placeholder="contacto@empresa.com"></div>
-            <div class="fg"><label>Sitio web</label><input type="text" id="mWeb" placeholder="www.empresa.com"></div>
             <div class="fg"><label>Dirección</label><input type="text" id="mDireccion" placeholder="Cra 8 #35-09 (Montería)"></div>
+            <div class="fg"><label>Sitio web</label><input type="text" id="mWeb" placeholder="www.empresa.com"></div>
+            <div class="fg"><label>Email corporativo <span style="font-size:10px;color:#16A34A">(público)</span></label><input type="email" id="mEmailCorporativo" placeholder="info@empresa.com"></div>
+            <div class="fg"><label>Email de contacto personal <span style="font-size:10px;color:var(--muted)">(privado)</span></label><input type="email" id="mEmail" placeholder="gerente@empresa.com"></div>
+            <div class="fg"><label>Teléfono <span style="font-size:10px;color:var(--muted)">(privado)</span></label><input type="tel" id="mTelefono" placeholder="311 722 5979"></div>
+            <div class="fg"><label>Nombre del gerente/contacto <span style="font-size:10px;color:var(--muted)">(privado)</span></label><input type="text" id="mContacto" placeholder="Ej: Carlos Pérez"></div>
             <div class="fg full"><label>Descripción</label><textarea id="mDescripcion" placeholder="Breve descripción de la empresa y sus servicios..."></textarea></div>
-            <div class="fg full"><label>URL del logo</label><input type="url" id="mLogo" placeholder="https://... (enlace directo a imagen)"><div class="fhelp">Sube el logo a OneDrive y pega el enlace directo</div></div>
+            <div class="fg full">
+              <label>Logo de la empresa</label>
+              <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+                <div style="flex:1;min-width:200px">
+                  <input type="file" id="mLogoFile" accept="image/*" onchange="subirLogo(this)" style="display:block;width:100%;padding:10px;border:1.5px dashed var(--bdr2);border-radius:8px;font-family:Inter,sans-serif;font-size:13px;cursor:pointer">
+                  <div class="fhelp">JPG, PNG o SVG. Máximo 2MB.</div>
+                </div>
+                <div id="mLogoPreview" style="display:none;flex-shrink:0">
+                  <img id="mLogoImg" style="height:64px;width:auto;border-radius:8px;border:1px solid var(--bdr);object-fit:contain" alt="Preview">
+                </div>
+              </div>
+              <input type="hidden" id="mLogo">
+              <div id="mLogoStatus" style="font-size:12px;color:var(--muted);margin-top:6px"></div>
+            </div>
           </div>
           <div style="margin-top:22px;display:flex;gap:10px"><button class="btn-sub" onclick="publicarMiembro()">Agregar miembro →</button><button class="btn-can" onclick="limpiar('m','Nombre,Telefono,Email,Web,Direccion,Descripcion,Logo')">Limpiar</button></div>
         </div>
@@ -325,7 +340,41 @@ function renderTblEventos(){const arr=db.get('eventos'),tb=document.getElementBy
 function publicarOportunidad(){const nombre=v('oNombre'),dirigidoA=v('oDirigidoA'),sector=v('oSector'),descripcion=v('oDescripcion'),url=v('oUrl');if(!nombre||!dirigidoA||!sector||!descripcion||!url){toast('Complete todos los campos obligatorios (*)',true);return;}const arr=db.get('oportunidades');arr.unshift({id:Date.now(),nombre,dirigidoA,sector,monto:v('oMonto'),fechaLimite:v('oFechaLimite'),descripcion,url,creadoEn:new Date().toISOString()});db.set('oportunidades',arr);limpiar('o','Nombre,DirigidoA,Monto,FechaLimite,Descripcion,Url');renderTblOportunidades();updateResumen();toast('✓ Oportunidad publicada exitosamente');}
 function eliminarOportunidad(id){if(!confirm('¿Eliminar?'))return;db.set('oportunidades',db.get('oportunidades').filter(x=>x.id!==id));renderTblOportunidades();updateResumen();toast('Eliminada');}
 function renderTblOportunidades(){const arr=db.get('oportunidades'),tb=document.getElementById('tblOportunidades');if(!arr.length){tb.innerHTML=emptyRow(5,'Sin oportunidades publicadas');return;}tb.innerHTML=arr.map(o=>`<tr><td><div style="font-weight:600;color:var(--ink)">${o.nombre}</div><div style="font-size:11px;color:var(--muted)">Dirigido a: ${o.dirigidoA}</div></td><td>${badge(o.sector,'bp')}</td><td style="font-weight:600;color:#065F46">${o.monto||'—'}</td><td>${o.fechaLimite?fmtDate(o.fechaLimite):'—'}</td><td><a href="${o.url}" target="_blank" class="btn-edit">Ver</a> <button class="btn-del" onclick="eliminarOportunidad(${o.id})">✕</button></td></tr>`).join('');}
-function publicarMiembro(){const nombre=v('mNombre'),sector=v('mSector');if(!nombre||!sector){toast('Nombre y sector son obligatorios',true);return;}const arr=db.get('miembros');arr.push({id:Date.now(),nombre,sector,telefono:v('mTelefono'),email:v('mEmail'),web:v('mWeb'),direccion:v('mDireccion'),descripcion:v('mDescripcion'),logo:v('mLogo'),creadoEn:new Date().toISOString()});arr.sort((a,b)=>a.nombre.localeCompare(b.nombre));db.set('miembros',arr);limpiar('m','Nombre,Telefono,Email,Web,Direccion,Descripcion,Logo');renderTblMiembros('');updateResumen();toast('✓ Miembro agregado al directorio');}
+async function subirLogo(input) {
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 2*1024*1024) { toast('El logo no debe superar 2MB', true); return; }
+  document.getElementById('mLogoStatus').textContent = '⏳ Subiendo logo...';
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', 'promonteria_logos');
+  fd.append('folder', 'miembros');
+  try {
+    const res = await fetch('https://api.cloudinary.com/v1_1/dzpcjb3qo/image/upload', {method:'POST', body:fd});
+    const data = await res.json();
+    document.getElementById('mLogo').value = data.secure_url;
+    document.getElementById('mLogoImg').src = data.secure_url;
+    document.getElementById('mLogoPreview').style.display = 'block';
+    document.getElementById('mLogoStatus').textContent = '✓ Logo subido correctamente';
+    document.getElementById('mLogoStatus').style.color = '#16A34A';
+  } catch(e) {
+    document.getElementById('mLogoStatus').textContent = '✗ Error al subir el logo';
+    document.getElementById('mLogoStatus').style.color = '#DC2626';
+  }
+}
+function publicarMiembro(){
+  const nombre=v('mNombre'),sector=v('mSector');
+  if(!nombre||!sector){toast('Nombre y sector son obligatorios',true);return;}
+  const arr=db.get('miembros');
+  arr.push({id:Date.now(),nombre,sector,direccion:v('mDireccion'),web:v('mWeb'),emailCorporativo:v('mEmailCorporativo'),email:v('mEmail'),telefono:v('mTelefono'),contacto:v('mContacto'),descripcion:v('mDescripcion'),logo:v('mLogo'),creadoEn:new Date().toISOString()});
+  arr.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  db.set('miembros',arr);
+  limpiar('m','Nombre,Direccion,Web,EmailCorporativo,Email,Telefono,Contacto,Descripcion');
+  document.getElementById('mLogo').value='';
+  document.getElementById('mLogoFile').value='';
+  document.getElementById('mLogoPreview').style.display='none';
+  renderTblMiembros('');updateResumen();toast('✓ Miembro agregado al directorio');
+}
 function eliminarMiembro(id){if(!confirm('¿Eliminar este miembro?'))return;db.set('miembros',db.get('miembros').filter(x=>x.id!==id));renderTblMiembros('');updateResumen();toast('Miembro eliminado');}
 function renderTblMiembros(q=''){let arr=db.get('miembros');if(q)arr=arr.filter(m=>(m.nombre+m.sector+(m.descripcion||'')).toLowerCase().includes(q.toLowerCase()));document.getElementById('cntMiembros').textContent=db.get('miembros').length+' miembros registrados';const tb=document.getElementById('tblMiembros');if(!arr.length){tb.innerHTML=emptyRow(5,q?'Sin resultados':'Sin miembros registrados');return;}tb.innerHTML=arr.map(m=>`<tr><td><div style="font-weight:600;color:var(--ink)">${m.nombre}</div>${m.web?`<div style="font-size:11px;color:var(--muted)">${m.web}</div>`:''}</td><td>${badge(m.sector,'bp')}</td><td style="font-size:12px">${m.telefono||'—'}</td><td style="font-size:12px">${m.email?`<a href="mailto:${m.email}" style="color:var(--p)">${m.email}</a>`:'—'}</td><td><button class="btn-del" onclick="eliminarMiembro(${m.id})">✕ Eliminar</button></td></tr>`).join('');}
 function guardarSectores(){const sectores=document.getElementById('sectoresInput').value.split('\n').map(s=>s.trim()).filter(Boolean);db.setObj('config_sectores',{sectores});['bSector','oSector','mSector'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">Seleccione</option>'+sectores.map(s=>`<option>${s}</option>`).join('');});toast('✓ Sectores guardados exitosamente');}
