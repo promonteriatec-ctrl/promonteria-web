@@ -562,9 +562,14 @@ function renderOportunidades() {
 
 // ── DIRECTORIO ────────────────────────────────────────────────────────────────
 let sectorFiltroActivo='Todos';
-function buildSectoresFiltrosMiembros() {
-  const cfg=db.getObj('config_sectores',{sectores:['Salud','Construcción','Educación','Tecnología','Financiero','Energía','Agropecuario','Alimentos y Bebidas','Comercio','Logística y Transporte','Medios y Publicidad','Legal y Consultoría','Hotelería y Turismo','Industrial y Manufactura','Ambiental y Servicios','Seguridad','Servicios Profesionales','Otros']});
-  const todos=['Todos',...cfg.sectores];
+async function buildSectoresFiltrosMiembros() {
+  let sectores = ['Salud','Construcción','Educación','Tecnología','Financiero','Energía','Agropecuario','Alimentos y Bebidas','Comercio','Logística y Transporte','Medios y Publicidad','Legal y Consultoría','Hotelería y Turismo','Industrial y Manufactura','Ambiental y Servicios','Seguridad','Servicios Profesionales','Otros'];
+  try {
+    const snap = await window.fsGetDocs(window.fsCollection(window.fsdb,'config'));
+    const doc = snap.docs.find(d=>d.id==='sectores');
+    if(doc) sectores = doc.data().lista;
+  } catch(e){}
+  const todos=['Todos',...sectores];
   document.getElementById('sectoresFiltros').innerHTML=todos.map(s=>
     `<button class="filter-btn${s==='Todos'?' active':''}" onclick="setSectorMiembro('${s}',this)">${s}</button>`
   ).join('');
@@ -611,8 +616,8 @@ async function filtrarMiembros() {
       </div>`).join('');
   } catch(e) { isEmpty(grid, '⚠️', 'Error al cargar', 'Intenta recargar la página.'); }
 }
-function renderMiembros() {
-  buildSectoresFiltrosMiembros();
+async function renderMiembros() {
+  await buildSectoresFiltrosMiembros();
   filtrarMiembros();
 }
 

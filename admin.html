@@ -298,7 +298,7 @@ tr:last-child td{border-bottom:none}
         </div>
         <div class="tbl-card">
           <div class="tbl-hdr"><div class="tbl-hdr-title">Miembros registrados</div><input type="text" placeholder="Buscar..." oninput="renderTblMiembros(this.value)" style="padding:7px 12px;border:1.5px solid var(--bdr);border-radius:7px;font-family:Inter,sans-serif;font-size:13px;outline:none;width:200px"></div>
-          <div class="tbl-wrap"><table><thead><tr><th>Empresa</th><th>Sector</th><th>Teléfono</th><th>Email</th><th>Acciones</th></tr></thead><tbody id="tblMiembros"></tbody></table></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Empresa</th><th>Sector</th><th>Teléfono</th><th>Email</th><th style="white-space:nowrap">Acciones</th></tr></thead><tbody id="tblMiembros"></tbody></table></div>
         </div>
       </div>
 
@@ -328,8 +328,15 @@ tr:last-child td{border-bottom:none}
 <div class="toast" id="toast"></div>
 <script>
 const db={get:k=>{try{return JSON.parse(localStorage.getItem('pm_'+k)||'[]')}catch(e){return[]}},set:(k,v)=>localStorage.setItem('pm_'+k,JSON.stringify(v)),getObj:(k,d)=>{try{return JSON.parse(localStorage.getItem('pm_'+k)||JSON.stringify(d))}catch(e){return d}},setObj:(k,v)=>localStorage.setItem('pm_'+k,JSON.stringify(v))};
-function initAdmin(){document.getElementById('bFecha').value=new Date().toISOString().slice(0,7);const cfg=getSectores();['bSector','oSector','mSector'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">Seleccione</option>'+cfg.map(s=>`<option>${s}</option>`).join('');});document.getElementById('sectoresInput').value=cfg.join('\n');updateResumen();renderTblBoletines();renderTblEventos();renderTblOportunidades();renderTblMiembros('');}
-function getSectores(){return db.getObj('config_sectores',{sectores:['Salud','Construcción','Educación','Tecnología','Financiero','Energía','Agropecuario','Alimentos y Bebidas','Comercio','Logística y Transporte','Medios y Publicidad','Legal y Consultoría','Hotelería y Turismo','Industrial y Manufactura','Ambiental y Servicios','Seguridad','Servicios Profesionales','Otros']}).sectores;}
+async function initAdmin(){document.getElementById('bFecha').value=new Date().toISOString().slice(0,7);const cfg = await getSectores();['bSector','oSector','mSector'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">Seleccione</option>'+cfg.map(s=>`<option>${s}</option>`).join('');});document.getElementById('sectoresInput').value=cfg.join('\n');updateResumen();renderTblBoletines();renderTblEventos();renderTblOportunidades();renderTblMiembros('');}
+const SECTORES_DEFAULT = ['Salud','Construcción','Educación','Tecnología','Financiero','Energía','Agropecuario','Alimentos y Bebidas','Comercio','Logística y Transporte','Medios y Publicidad','Legal y Consultoría','Hotelería y Turismo','Industrial y Manufactura','Ambiental y Servicios','Seguridad','Servicios Profesionales','Otros'];
+async function getSectores(){
+  try {
+    const snap = await window.fsGetDocs(window.fsCollection(window.fsdb,'config'));
+    const doc = snap.docs.find(d=>d.id==='sectores');
+    return doc ? doc.data().lista : SECTORES_DEFAULT;
+  } catch(e){ return SECTORES_DEFAULT; }
+}
 function showView(id,el){document.querySelectorAll('.aview').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.aitem').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');if(el)el.classList.add('active');}
 async function updateResumen(){
   document.getElementById('rBol').textContent=db.get('boletines').length;
@@ -412,17 +419,88 @@ async function renderTblMiembros(q=''){
     if(q) arr=arr.filter(m=>(m.nombre+m.sector+(m.descripcion||'')).toLowerCase().includes(q.toLowerCase()));
     document.getElementById('cntMiembros').textContent=snap.size+' miembros registrados';
     const tb=document.getElementById('tblMiembros');
-    if(!arr.length){tb.innerHTML=emptyRow(5,q?'Sin resultados':'Sin miembros registrados');return;}
+    if(!arr.length){tb.innerHTML=emptyRow(6,q?'Sin resultados':'Sin miembros registrados');return;}
     tb.innerHTML=arr.map(m=>`<tr>
       <td><div style="font-weight:600;color:var(--ink)">${m.nombre}</div>${m.web?`<div style="font-size:11px;color:var(--muted)">${m.web}</div>`:''}</td>
       <td>${badge(m.sector,'bp')}</td>
       <td style="font-size:12px">${m.telefono||'—'}</td>
       <td style="font-size:12px">${m.email?`<a href="mailto:${m.email}" style="color:var(--p)">${m.email}</a>`:'—'}</td>
-      <td><button class="btn-del" onclick="eliminarMiembro('${m._id}')">✕ Eliminar</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn-edit" onclick="editarMiembro('${m._id}')">✏️ Editar</button>
+        <button class="btn-del" onclick="eliminarMiembro('${m._id}')">✕ Eliminar</button>
+      </td>
     </tr>`).join('');
   } catch(e){ console.error(e); }
 }
-function guardarSectores(){const sectores=document.getElementById('sectoresInput').value.split('\n').map(s=>s.trim()).filter(Boolean);db.setObj('config_sectores',{sectores});['bSector','oSector','mSector'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">Seleccione</option>'+sectores.map(s=>`<option>${s}</option>`).join('');});toast('✓ Sectores guardados exitosamente');}
+
+async function editarMiembro(id) {
+  try {
+    const snap = await window.fsGetDocs(window.fsCollection(window.fsdb,'miembros'));
+    const docData = snap.docs.find(d=>d.id===id);
+    if(!docData) return;
+    const m = docData.data();
+    // Llenar el formulario con los datos existentes
+    document.getElementById('mNombre').value = m.nombre||'';
+    document.getElementById('mSector').value = m.sector||'';
+    document.getElementById('mDireccion').value = m.direccion||'';
+    document.getElementById('mWeb').value = m.web||'';
+    document.getElementById('mEmailCorporativo').value = m.emailCorporativo||'';
+    document.getElementById('mEmail').value = m.email||'';
+    document.getElementById('mTelefono').value = m.telefono||'';
+    document.getElementById('mContacto').value = m.contacto||'';
+    document.getElementById('mDescripcion').value = m.descripcion||'';
+    document.getElementById('mLogo').value = m.logo||'';
+    if(m.logo){
+      document.getElementById('mLogoImg').src = m.logo;
+      document.getElementById('mLogoPreview').style.display = 'block';
+    }
+    // Cambiar el botón a modo edición
+    const btn = document.querySelector('button[onclick="publicarMiembro()"]');
+    btn.textContent = '💾 Guardar cambios';
+    btn.setAttribute('onclick', `guardarEdicionMiembro('${id}')`);
+    btn.style.background = '#065F46';
+    // Scroll al formulario
+    document.getElementById('mNombre').scrollIntoView({behavior:'smooth', block:'center'});
+    toast('✏️ Editando miembro — modifica los datos y guarda');
+  } catch(e){ toast('Error al cargar: '+e.message, true); }
+}
+
+async function guardarEdicionMiembro(id) {
+  const nombre=v('mNombre'),sector=v('mSector');
+  if(!nombre||!sector){toast('Nombre y sector son obligatorios',true);return;}
+  try {
+    const {setDoc, doc} = await import('https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js');
+    await setDoc(doc(window.fsdb,'miembros',id),{
+      nombre,sector,
+      direccion:v('mDireccion'),web:v('mWeb'),
+      emailCorporativo:v('mEmailCorporativo'),
+      email:v('mEmail'),telefono:v('mTelefono'),
+      contacto:v('mContacto'),descripcion:v('mDescripcion'),
+      logo:v('mLogo'),
+      actualizadoEn:new Date().toISOString()
+    });
+    limpiar('m','Nombre,Direccion,Web,EmailCorporativo,Email,Telefono,Contacto,Descripcion');
+    document.getElementById('mLogo').value='';
+    document.getElementById('mLogoFile').value='';
+    document.getElementById('mLogoPreview').style.display='none';
+    document.getElementById('mLogoStatus').textContent='';
+    // Restaurar botón
+    const btn = document.querySelector(`button[onclick="guardarEdicionMiembro('${id}')"]`);
+    if(btn){btn.textContent='Agregar miembro →';btn.setAttribute('onclick','publicarMiembro()');btn.style.background='';}
+    await renderTblMiembros('');
+    updateResumen();
+    toast('✓ Miembro actualizado correctamente');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
+}
+async function guardarSectores(){
+  const sectores=document.getElementById('sectoresInput').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  try {
+    const {setDoc, doc} = await import('https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js');
+    await setDoc(doc(window.fsdb,'config','sectores'),{lista:sectores});
+    ['bSector','oSector','mSector'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">Seleccione</option>'+sectores.map(s=>`<option>${s}</option>`).join('');});
+    toast('✓ Sectores guardados y sincronizados');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
+}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none')login();});
 </script>
 </body>
