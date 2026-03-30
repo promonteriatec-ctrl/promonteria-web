@@ -535,7 +535,7 @@ function filtrarMiembros() {
   let miembros=db.get('miembros');
   const q=document.getElementById('searchMiembros').value.toLowerCase();
   if(sectorFiltroActivo!=='Todos') miembros=miembros.filter(m=>m.sector===sectorFiltroActivo);
-  if(q) miembros=miembros.filter(m=>(m.nombre+m.descripcion+m.sector).toLowerCase().includes(q));
+  if(q) miembros=miembros.filter(m=>(m.nombre+(m.descripcion||'')+(m.sector||'')+(m.contacto||'')+(m.emailCorporativo||'')).toLowerCase().includes(q));
   document.getElementById('miembrosCount').textContent=miembros.length;
   const grid=document.getElementById('miembrosGrid');
   if(!miembros.length) { isEmpty(grid,'🏢','Sin resultados','Intenta con otro término o sector.'); return; }
@@ -554,8 +554,10 @@ function filtrarMiembros() {
         <div class="m-card-name">${m.nombre}</div>
         <div class="m-card-desc">${m.descripcion||''}</div>
         <div class="m-card-info">
+          ${m.contacto?`<span>👤 ${m.contacto}</span>`:''}
           ${m.telefono?`<span>📞 ${m.telefono}</span>`:''}
           ${m.email?`<a href="mailto:${m.email}">✉️ ${m.email}</a>`:''}
+          ${m.emailCorporativo?`<a href="mailto:${m.emailCorporativo}">🏢 ${m.emailCorporativo}</a>`:''}
           ${m.web?`<a href="${m.web.startsWith('http')?m.web:'https://'+m.web}" target="_blank">🌐 ${m.web}</a>`:''}
           ${m.direccion?`<span>📍 ${m.direccion}</span>`:''}
         </div>
