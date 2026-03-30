@@ -88,6 +88,7 @@ tr:last-child td{border-bottom:none}
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCFIxUb0WMJLIitGTu1x_bhXG1bhFOy1Ac",
@@ -100,6 +101,8 @@ tr:last-child td{border-bottom:none}
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const firestore = getFirestore(app);
+  window.fsdb = firestore;
 
   window.login = async function() {
     const email = document.getElementById('lUser').value.trim();
@@ -323,7 +326,16 @@ const db={get:k=>{try{return JSON.parse(localStorage.getItem('pm_'+k)||'[]')}cat
 function initAdmin(){document.getElementById('bFecha').value=new Date().toISOString().slice(0,7);const cfg=getSectores();['bSector','oSector','mSector'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">Seleccione</option>'+cfg.map(s=>`<option>${s}</option>`).join('');});document.getElementById('sectoresInput').value=cfg.join('\n');updateResumen();renderTblBoletines();renderTblEventos();renderTblOportunidades();renderTblMiembros('');}
 function getSectores(){return db.getObj('config_sectores',{sectores:['Salud','Construcción','Educación','Tecnología','Financiero','Energía','Agropecuario','Alimentos y Bebidas','Comercio','Logística y Transporte','Medios y Publicidad','Legal y Consultoría','Hotelería y Turismo','Industrial y Manufactura','Ambiental y Servicios','Seguridad','Servicios Profesionales','Otros']}).sectores;}
 function showView(id,el){document.querySelectorAll('.aview').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.aitem').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');if(el)el.classList.add('active');}
-function updateResumen(){document.getElementById('rBol').textContent=db.get('boletines').length;document.getElementById('rEv').textContent=db.get('eventos').length;document.getElementById('rOp').textContent=db.get('oportunidades').length;document.getElementById('rMi').textContent=db.get('miembros').length;document.getElementById('cntMiembros').textContent=db.get('miembros').length+' miembros';}
+async function updateResumen(){
+  document.getElementById('rBol').textContent=db.get('boletines').length;
+  document.getElementById('rEv').textContent=db.get('eventos').length;
+  document.getElementById('rOp').textContent=db.get('oportunidades').length;
+  try {
+    const snap=await getDocs(collection(window.fsdb,'miembros'));
+    document.getElementById('rMi').textContent=snap.size;
+    document.getElementById('cntMiembros').textContent=snap.size+' miembros';
+  } catch(e){}
+}
 function toast(msg,err=false){const t=document.getElementById('toast');t.textContent=msg;t.style.background=err?'#DC2626':'#16A34A';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 function v(id){return document.getElementById(id).value.trim();}
 function limpiar(pfx,fields){fields.split(',').forEach(f=>{const el=document.getElementById(pfx+f);if(el)el.value='';});}
@@ -362,21 +374,49 @@ async function subirLogo(input) {
     document.getElementById('mLogoStatus').style.color = '#DC2626';
   }
 }
-function publicarMiembro(){
+async function publicarMiembro(){
   const nombre=v('mNombre'),sector=v('mSector');
   if(!nombre||!sector){toast('Nombre y sector son obligatorios',true);return;}
-  const arr=db.get('miembros');
-  arr.push({id:Date.now(),nombre,sector,direccion:v('mDireccion'),web:v('mWeb'),emailCorporativo:v('mEmailCorporativo'),email:v('mEmail'),telefono:v('mTelefono'),contacto:v('mContacto'),descripcion:v('mDescripcion'),logo:v('mLogo'),creadoEn:new Date().toISOString()});
-  arr.sort((a,b)=>a.nombre.localeCompare(b.nombre));
-  db.set('miembros',arr);
-  limpiar('m','Nombre,Direccion,Web,EmailCorporativo,Email,Telefono,Contacto,Descripcion');
-  document.getElementById('mLogo').value='';
-  document.getElementById('mLogoFile').value='';
-  document.getElementById('mLogoPreview').style.display='none';
-  renderTblMiembros('');updateResumen();toast('✓ Miembro agregado al directorio');
+  const miembro={nombre,sector,direccion:v('mDireccion'),web:v('mWeb'),emailCorporativo:v('mEmailCorporativo'),email:v('mEmail'),telefono:v('mTelefono'),contacto:v('mContacto'),descripcion:v('mDescripcion'),logo:v('mLogo'),creadoEn:new Date().toISOString()};
+  try {
+    await addDoc(collection(window.fsdb,'miembros'), miembro);
+    limpiar('m','Nombre,Direccion,Web,EmailCorporativo,Email,Telefono,Contacto,Descripcion');
+    document.getElementById('mLogo').value='';
+    document.getElementById('mLogoFile').value='';
+    document.getElementById('mLogoPreview').style.display='none';
+    document.getElementById('mLogoStatus').textContent='';
+    await renderTblMiembros('');
+    updateResumen();
+    toast('✓ Miembro agregado al directorio');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
 }
-function eliminarMiembro(id){if(!confirm('¿Eliminar este miembro?'))return;db.set('miembros',db.get('miembros').filter(x=>x.id!==id));renderTblMiembros('');updateResumen();toast('Miembro eliminado');}
-function renderTblMiembros(q=''){let arr=db.get('miembros');if(q)arr=arr.filter(m=>(m.nombre+m.sector+(m.descripcion||'')).toLowerCase().includes(q.toLowerCase()));document.getElementById('cntMiembros').textContent=db.get('miembros').length+' miembros registrados';const tb=document.getElementById('tblMiembros');if(!arr.length){tb.innerHTML=emptyRow(5,q?'Sin resultados':'Sin miembros registrados');return;}tb.innerHTML=arr.map(m=>`<tr><td><div style="font-weight:600;color:var(--ink)">${m.nombre}</div>${m.web?`<div style="font-size:11px;color:var(--muted)">${m.web}</div>`:''}</td><td>${badge(m.sector,'bp')}</td><td style="font-size:12px">${m.telefono||'—'}</td><td style="font-size:12px">${m.email?`<a href="mailto:${m.email}" style="color:var(--p)">${m.email}</a>`:'—'}</td><td><button class="btn-del" onclick="eliminarMiembro(${m.id})">✕ Eliminar</button></td></tr>`).join('');}
+async function eliminarMiembro(id){
+  if(!confirm('¿Eliminar este miembro?'))return;
+  try {
+    await deleteDoc(doc(window.fsdb,'miembros',id));
+    await renderTblMiembros('');
+    updateResumen();
+    toast('Miembro eliminado');
+  } catch(e){ toast('Error: '+e.message,true); }
+}
+async function renderTblMiembros(q=''){
+  try {
+    const snap = await getDocs(collection(window.fsdb,'miembros'));
+    let arr = snap.docs.map(d=>({...d.data(), _id:d.id}));
+    arr.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    if(q) arr=arr.filter(m=>(m.nombre+m.sector+(m.descripcion||'')).toLowerCase().includes(q.toLowerCase()));
+    document.getElementById('cntMiembros').textContent=snap.size+' miembros registrados';
+    const tb=document.getElementById('tblMiembros');
+    if(!arr.length){tb.innerHTML=emptyRow(5,q?'Sin resultados':'Sin miembros registrados');return;}
+    tb.innerHTML=arr.map(m=>`<tr>
+      <td><div style="font-weight:600;color:var(--ink)">${m.nombre}</div>${m.web?`<div style="font-size:11px;color:var(--muted)">${m.web}</div>`:''}</td>
+      <td>${badge(m.sector,'bp')}</td>
+      <td style="font-size:12px">${m.telefono||'—'}</td>
+      <td style="font-size:12px">${m.email?`<a href="mailto:${m.email}" style="color:var(--p)">${m.email}</a>`:'—'}</td>
+      <td><button class="btn-del" onclick="eliminarMiembro('${m._id}')">✕ Eliminar</button></td>
+    </tr>`).join('');
+  } catch(e){ console.error(e); }
+}
 function guardarSectores(){const sectores=document.getElementById('sectoresInput').value.split('\n').map(s=>s.trim()).filter(Boolean);db.setObj('config_sectores',{sectores});['bSector','oSector','mSector'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">Seleccione</option>'+sectores.map(s=>`<option>${s}</option>`).join('');});toast('✓ Sectores guardados exitosamente');}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginScreen').style.display!=='none')login();});
 </script>
