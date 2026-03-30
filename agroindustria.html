@@ -130,6 +130,10 @@ footer{background:var(--p-d);color:#fff;padding:56px clamp(20px,4vw,64px) 28px}
 .nav-dropdown-menu a{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;color:#0D0D12!important;text-decoration:none;transition:all .15s;background:none!important;white-space:nowrap}
 .nav-dropdown-menu a:hover{background:#F3E8FF!important;color:#37006C!important}
 .nav-dropdown-menu a .di{font-size:17px;width:24px;text-align:center;flex-shrink:0}
+.lang-switcher{display:flex;align-items:center;gap:6px}
+.lang-btn{background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;padding:5px 10px;border-radius:6px;cursor:pointer;transition:all .2s}
+.lang-btn:hover{border-color:rgba(255,255,255,.5);color:#fff}
+.lang-btn.active{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4);color:#fff}
 </style>
 </head>
 <body>
@@ -354,11 +358,17 @@ footer{background:var(--p-d);color:#fff;padding:56px clamp(20px,4vw,64px) 28px}
     </div>
     <div class="ft-bot">
       <span>© 2026 ProMontería — Agencia de Promoción de Inversión de Córdoba, Colombia</span>
-      <span style="text-align:right;line-height:1.8">
-        Desarrollado por Innmedios<br>
-        <a href="https://www.innmedios.com" target="_blank" style="color:rgba(255,255,255,.35);text-decoration:none;transition:color .2s" onmouseenter="this.style.color='rgba(255,255,255,.7)'" onmouseleave="this.style.color='rgba(255,255,255,.35)'">www.innmedios.com</a><br>
-        Colombia
-      </span>
+      <div style="display:flex;align-items:center;gap:20px">
+        <span style="text-align:right;line-height:1.8">
+          Desarrollado por Innmedios<br>
+          <a href="https://www.innmedios.com" target="_blank" style="color:rgba(255,255,255,.35);text-decoration:none;transition:color .2s" onmouseenter="this.style.color='rgba(255,255,255,.7)'" onmouseleave="this.style.color='rgba(255,255,255,.35)'">www.innmedios.com</a><br>
+          Colombia
+        </span>
+        <div class="lang-switcher" translate="no">
+          <button class="lang-btn active" id="btnES" onclick="setLang('es')" translate="no">ES</button>
+          <button class="lang-btn" id="btnEN" onclick="setLang('en')" translate="no">EN</button>
+        </div>
+      </div>
     </div>
   </div>
 </footer>
@@ -381,18 +391,34 @@ document.querySelectorAll('.nav-dropdown').forEach(item=>{
   item.addEventListener('mouseleave',()=>{menu.style.cssText='opacity:0;visibility:hidden;top:calc(100% + 16px);pointer-events:none'});
 });
 </script>
-<!-- GOOGLE TRANSLATE -->
-<div id="google_translate_element" style="position:fixed;bottom:24px;left:24px;z-index:999"></div>
+<div id="gt-hidden" style="display:none" translate="no"></div>
+<style>.goog-te-banner-frame{display:none!important}.skiptranslate{display:none!important}body{top:0!important}</style>
 <script>
-function googleTranslateElementInit() {
+window.initGT = function() {
   new google.translate.TranslateElement({
-    pageLanguage: 'es',
-    includedLanguages: 'en,fr,de,pt,zh-CN,ar,ja',
-    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-    autoDisplay: false
-  }, 'google_translate_element');
+    pageLanguage:'es', includedLanguages:'en', autoDisplay:false
+  },'gt-hidden');
+};
+(function(){
+  const s=document.createElement('script');
+  s.src='//translate.google.com/translate_a/element.js?cb=initGT';
+  document.head.appendChild(s);
+})();
+
+function setLang(lang) {
+  document.getElementById('btnES').classList.toggle('active', lang==='es');
+  document.getElementById('btnEN').classList.toggle('active', lang==='en');
+  if(lang==='es') {
+    document.cookie='googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie='googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain='+location.hostname;
+    location.reload();
+    return;
+  }
+  setTimeout(()=>{
+    const sel=document.querySelector('.goog-te-combo');
+    if(sel){sel.value='en';sel.dispatchEvent(new Event('change'));}
+  }, 800);
 }
 </script>
-<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
