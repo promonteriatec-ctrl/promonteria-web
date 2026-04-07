@@ -179,6 +179,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--i
   const auth = getAuth(app);
   const fsdb = getFirestore(app);
   window.fsdb = fsdb;
+  window._pmAuth = auth;
+  window.fsGetDocs = getDocs;
+  window.fsCollection = collection;
   window.fsGetDocs = getDocs;
   window.fsCollection = collection;
 
@@ -409,12 +412,14 @@ const db = {
 };
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-function initPanel() {
-  const user = sessionStorage.getItem('pm_muser') || 'Miembro';
-  document.getElementById('sidebarUserName').textContent = user.charAt(0).toUpperCase()+user.slice(1);
-  document.getElementById('welcomeName').textContent = user.charAt(0).toUpperCase()+user.slice(1);
-  loadInicio();
-  buildSectoresFiltros();
+async function initPanel() {
+  const auth = window._pmAuth;
+  const user = auth?.currentUser?.email || 'Miembro';
+  const nombre = user.split('@')[0];
+  document.getElementById('sidebarUserName').textContent = nombre.charAt(0).toUpperCase()+nombre.slice(1);
+  document.getElementById('welcomeName').textContent = nombre.charAt(0).toUpperCase()+nombre.slice(1);
+  await loadInicio();
+  await buildSectoresFiltrosMiembros();
 }
 
 // ── VIEW NAV ──────────────────────────────────────────────────────────────────
@@ -449,55 +454,68 @@ function isEmpty(cont,icon,title,sub) {
 }
 
 // ── INICIO ────────────────────────────────────────────────────────────────────
-function loadInicio() {
-  const eventos=db.get('eventos').filter(e=>!e.fecha||new Date(e.fecha+'T00:00:00')>=new Date());
-  const ops=db.get('oportunidades');
-  const miembros=db.get('miembros');
-  document.getElementById('stEventos').textContent=eventos.length;
-  document.getElementById('stOps').textContent=ops.length;
-  document.getElementById('stMiembros').textContent=miembros.length;
+async function loadInicio() {
+  // Cargar contadores desde Firestore
+  try {
+    const [snapEv, snapOps, snapMi, snapBol] = await Promise.all([
+      window.fsGetDocs(window.fsCollection(window.fsdb,'eventos')),
+      window.fsGetDocs(window.fsCollection(window.fsdb,'oportunidades')),
+      window.fsGetDocs(window.fsCollection(window.fsdb,'miembros')),
+      window.fsGetDocs(window.fsCollection(window.fsdb,'boletines')),
+    ]);
 
-  // preview eventos
-  const pe=document.getElementById('inicioEventosPreview');
-  if(!eventos.length) { isEmpty(pe,'📅','Sin eventos próximos','Pronto se publicarán nuevos eventos para miembros.'); }
-  else {
-    pe.innerHTML=eventos.slice(0,2).map(e=>`
-      <div class="evento-card">
-        <div class="evento-bar"></div>
-        <div class="evento-body">
-          <div class="evento-fecha">${fmtDateShort(e.fecha)||'Fecha por confirmar'} · ${e.modalidad||'Presencial'}</div>
-          <div class="evento-title">${e.titulo}</div>
-          <div class="evento-desc">${e.descripcion||''}</div>
-          <div class="evento-info">
-            ${e.lugar?`<span>📍 ${e.lugar}</span>`:''}
-            ${e.hora?`<span>⏰ ${e.hora}</span>`:''}
-          </div>
-          ${e.url?`<div style="margin-top:14px"><a href="${e.url}" target="_blank" class="btn btn-p" style="font-size:12px;padding:9px 18px">Inscribirse →</a></div>`:''}
-        </div>
-      </div>`).join('');
-  }
+    const eventos = snapEv.docs.map(d=>({...d.data(),_id:d.id}))
+      .filter(e=>!e.fecha||new Date(e.fecha+'T00:00:00')>=new Date())
+      .sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+    const ops = snapOps.docs.map(d=>({...d.data(),_id:d.id}));
+    const miembros = snapMi.docs.map(d=>({...d.data(),_id:d.id}));
 
-  // preview oportunidades
-  const po=document.getElementById('inicioOpsPreview');
-  if(!ops.length) { isEmpty(po,'💼','Sin oportunidades activas','Se publicarán convocatorias y proyectos próximamente.'); }
-  else {
-    po.innerHTML=ops.slice(0,2).map(o=>`
-      <div class="op-card">
-        <div class="op-header">
-          <div>
-            <div class="op-title">${o.nombre}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:3px">Dirigido a: ${o.dirigidoA||'—'} · Sector: ${o.sector||'—'}</div>
+    document.getElementById('stEventos').textContent = eventos.length;
+    document.getElementById('stOps').textContent = ops.length;
+    document.getElementById('stMiembros').textContent = miembros.length;
+
+    // preview eventos
+    const pe = document.getElementById('inicioEventosPreview');
+    if(!eventos.length) { isEmpty(pe,'📅','Sin eventos próximos','Pronto se publicarán nuevos eventos para miembros.'); }
+    else {
+      pe.innerHTML=eventos.slice(0,2).map(e=>`
+        <div class="evento-card">
+          <div class="evento-bar"></div>
+          <div class="evento-body">
+            <div class="evento-fecha">${fmtDateShort(e.fecha)||'Fecha por confirmar'} · ${e.modalidad||'Presencial'}</div>
+            <div class="evento-title">${e.titulo}</div>
+            <div class="evento-desc">${e.descripcion||''}</div>
+            <div class="evento-info">
+              ${e.lugar?`<span>📍 ${e.lugar}</span>`:''}
+              ${e.hora?`<span>⏰ ${e.hora}</span>`:''}
+            </div>
+            ${e.url?`<div style="margin-top:14px"><a href="${e.url}" target="_blank" class="btn btn-p" style="font-size:12px;padding:9px 18px">Inscribirse →</a></div>`:''}
           </div>
-          ${o.monto?`<div class="op-monto">${o.monto}</div>`:''}
-        </div>
-        <div class="op-desc">${o.descripcion||''}</div>
-        <div class="op-meta">
-          ${o.sector?`<span class="badge badge-p">${o.sector}</span>`:''}
-          ${o.fechaLimite?`<span class="badge badge-y">Límite: ${fmtDateShort(o.fechaLimite)}</span>`:''}
-        </div>
-        ${o.url?`<a href="${o.url}" target="_blank" class="btn btn-g" style="font-size:12px;padding:9px 18px">Postularme →</a>`:''}
-      </div>`).join('');
-  }
+        </div>`).join('');
+    }
+
+    // preview oportunidades
+    const po = document.getElementById('inicioOpsPreview');
+    if(!ops.length) { isEmpty(po,'💼','Sin oportunidades activas','Se publicarán convocatorias próximamente.'); }
+    else {
+      po.innerHTML=ops.slice(0,2).map(o=>`
+        <div class="op-card">
+          <div class="op-header">
+            <div>
+              <div class="op-title">${o.nombre}</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:3px">Dirigido a: ${o.dirigidoA||'—'} · Sector: ${o.sector||'—'}</div>
+            </div>
+            ${o.monto?`<div class="op-monto">${o.monto}</div>`:''}
+          </div>
+          <div class="op-desc">${o.descripcion||''}</div>
+          <div class="op-meta">
+            ${o.sector?`<span class="badge badge-p">${o.sector}</span>`:''}
+            ${o.fechaLimite?`<span class="badge badge-y">Límite: ${fmtDateShort(o.fechaLimite)}</span>`:''}
+          </div>
+          ${o.url?`<a href="${o.url}" target="_blank" class="btn btn-g" style="font-size:12px;padding:9px 18px">Postularme →</a>`:''}
+        </div>`).join('');
+    }
+  } catch(e){ console.error('Error cargando inicio:', e); }
 }
 
 // ── EVENTOS ───────────────────────────────────────────────────────────────────

@@ -377,6 +377,25 @@ footer{background:var(--p-d);color:#fff;padding:56px clamp(20px,4vw,64px) 28px}
 .lang-btn:hover{border-color:rgba(255,255,255,.5);color:#fff}
 .lang-btn.active{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4);color:#fff}
 </style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFIxUb0WMJLIitGTu1x_bhXG1bhFOy1Ac",
+    authDomain: "promonteria-web.firebaseapp.com",
+    projectId: "promonteria-web",
+    storageBucket: "promonteria-web.firebasestorage.app",
+    messagingSenderId: "427153323484",
+    appId: "1:427153323484:web:ddbce6136af3fd62484b19"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.fsdb = db;
+  window.fsGetDocs = getDocs;
+  window.fsCollection = collection;
+</script>
 </head>
 <body>
 
@@ -447,132 +466,9 @@ footer{background:var(--p-d);color:#fff;padding:56px clamp(20px,4vw,64px) 28px}
 
     <!-- GRID -->
     <div class="boletines-grid reveal" id="boletinesGrid">
-
-      <!-- BOLETÍN 1 — ACEITES -->
-      <div class="bcard" data-sector="Industrialización Verde">
-        <div class="bcard-bar"></div>
-        <div class="bcard-body">
-          <div class="bcard-meta">
-            <div class="bcard-icon">📄</div>
-            <div>
-              <div class="bcard-fecha">Enero 2026</div>
-              <div class="bcard-sector">Industrialización Verde</div>
-            </div>
-          </div>
-          <h3>Ingredientes naturales para la industria cosmética: Aceites</h3>
-          <p>Análisis del potencial de los aceites naturales de Córdoba como insumo estratégico para la industria cosmética global. Tendencias, mercados y oportunidades.</p>
-          <div class="bcard-tags">
-            <span class="bcard-tag">Cosmética Natural</span>
-            <span class="bcard-tag">Aceites</span>
-            <span class="bcard-tag">Exportación</span>
-          </div>
-          <div class="bcard-actions">
-            <a href="URL_VER_BOLETIN_1" target="_blank" class="bcard-ver">Ver boletín →</a>
-            <a href="URL_DESCARGAR_BOLETIN_1" target="_blank" class="bcard-dl" title="Descargar PDF">⬇️</a>
-          </div>
-        </div>
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:14px">
+        ⏳ Cargando boletines...
       </div>
-
-      <!-- BOLETÍN 2 — placeholder -->
-      <div class="bcard" data-sector="pendiente">
-        <div class="bcard-bar" style="background:linear-gradient(to right,#7C3AED,#06B6D4)"></div>
-        <div class="bcard-body">
-          <div class="bcard-meta">
-            <div class="bcard-icon">📄</div>
-            <div>
-              <div class="bcard-fecha">Próximamente</div>
-              <div class="bcard-sector">Sector por definir</div>
-            </div>
-          </div>
-          <h3>Título del boletín 2</h3>
-          <p>Descripción del boletín. Reemplaza este texto con el resumen real cuando tengas el documento.</p>
-          <div class="bcard-tags">
-            <span class="bcard-tag">Por definir</span>
-          </div>
-          <div class="bcard-actions">
-            <a href="#" class="bcard-ver" style="background:var(--light);pointer-events:none">Próximamente</a>
-            <a href="#" class="bcard-dl" style="pointer-events:none;opacity:.4">⬇️</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- BOLETÍN 3 — placeholder -->
-      <div class="bcard" data-sector="pendiente">
-        <div class="bcard-bar" style="background:linear-gradient(to right,#06B6D4,#10B981)"></div>
-        <div class="bcard-body">
-          <div class="bcard-meta">
-            <div class="bcard-icon">📄</div>
-            <div>
-              <div class="bcard-fecha">Próximamente</div>
-              <div class="bcard-sector">Sector por definir</div>
-            </div>
-          </div>
-          <h3>Título del boletín 3</h3>
-          <p>Descripción del boletín. Reemplaza este texto con el resumen real cuando tengas el documento.</p>
-          <div class="bcard-tags">
-            <span class="bcard-tag">Por definir</span>
-          </div>
-          <div class="bcard-actions">
-            <a href="#" class="bcard-ver" style="background:var(--light);pointer-events:none">Próximamente</a>
-            <a href="#" class="bcard-dl" style="pointer-events:none;opacity:.4">⬇️</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- BOLETÍN 4 — placeholder -->
-      <div class="bcard" data-sector="pendiente">
-        <div class="bcard-bar" style="background:linear-gradient(to right,#10B981,#F59E0B)"></div>
-        <div class="bcard-body">
-          <div class="bcard-meta">
-            <div class="bcard-icon">📄</div>
-            <div>
-              <div class="bcard-fecha">Próximamente</div>
-              <div class="bcard-sector">Sector por definir</div>
-            </div>
-          </div>
-          <h3>Título del boletín 4</h3>
-          <p>Descripción del boletín. Reemplaza este texto con el resumen real cuando tengas el documento.</p>
-          <div class="bcard-tags">
-            <span class="bcard-tag">Por definir</span>
-          </div>
-          <div class="bcard-actions">
-            <a href="#" class="bcard-ver" style="background:var(--light);pointer-events:none">Próximamente</a>
-            <a href="#" class="bcard-dl" style="pointer-events:none;opacity:.4">⬇️</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- BOLETÍN 5 — placeholder -->
-      <div class="bcard" data-sector="pendiente">
-        <div class="bcard-bar" style="background:linear-gradient(to right,#F59E0B,var(--p))"></div>
-        <div class="bcard-body">
-          <div class="bcard-meta">
-            <div class="bcard-icon">📄</div>
-            <div>
-              <div class="bcard-fecha">Próximamente</div>
-              <div class="bcard-sector">Sector por definir</div>
-            </div>
-          </div>
-          <h3>Título del boletín 5</h3>
-          <p>Descripción del boletín. Reemplaza este texto con el resumen real cuando tengas el documento.</p>
-          <div class="bcard-tags">
-            <span class="bcard-tag">Por definir</span>
-          </div>
-          <div class="bcard-actions">
-            <a href="#" class="bcard-ver" style="background:var(--light);pointer-events:none">Próximamente</a>
-            <a href="#" class="bcard-dl" style="pointer-events:none;opacity:.4">⬇️</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- PRÓXIMO -->
-      <div class="bcard-proximamente">
-        <div style="font-size:32px;margin-bottom:12px">📬</div>
-        <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px">Nuevo boletín en camino</div>
-        <p style="font-size:12px;color:var(--light);line-height:1.6;margin-bottom:16px">Publicamos nuevos análisis sectoriales periódicamente.</p>
-        <a href="index.html#contacto" class="btn btn-outline" style="font-size:12px;padding:9px 18px">Notificarme →</a>
-      </div>
-
     </div>
 
     <!-- CTA SUSCRIPCION -->
@@ -665,18 +561,88 @@ const ro=new IntersectionObserver(
 document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
 
 
-// FILTRO POR SECTOR
+let todosBoletines = [];
+
 function filtrar(sector, btn) {
   document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.querySelectorAll('.bcard[data-sector]').forEach(card => {
-    if(sector === 'todos' || card.dataset.sector === sector) {
-      card.style.display = 'flex';
-    } else {
-      card.style.display = 'none';
-    }
-  });
+  const lista = sector === 'todos'
+    ? todosBoletines
+    : todosBoletines.filter(b => b.sector === sector);
+  renderGrid(lista);
 }
+
+function fmtMes(m) {
+  if(!m) return '—';
+  const [y, mo] = m.split('-');
+  return new Date(y, mo-1, 1).toLocaleDateString('es-CO', {month:'long', year:'numeric'});
+}
+
+function renderGrid(lista) {
+  const grid = document.getElementById('boletinesGrid');
+  if(!lista.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 24px">
+      <div style="font-size:40px;margin-bottom:14px">📬</div>
+      <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px">Sin boletines en este sector</div>
+      <p style="font-size:13px;color:var(--light)">Pronto publicaremos nuevos análisis sectoriales.</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = lista.map(b => `
+    <div class="bcard" data-sector="${b.sector||''}">
+      <div class="bcard-bar"></div>
+      <div class="bcard-body">
+        <div class="bcard-meta">
+          <div class="bcard-icon">📄</div>
+          <div>
+            <div class="bcard-fecha">${fmtMes(b.fecha)}</div>
+            <div class="bcard-sector">${b.sector||'—'}</div>
+          </div>
+        </div>
+        <h3>${b.titulo}</h3>
+        <p>${b.resumen||''}</p>
+        <div class="bcard-tags">
+          ${(b.tags||[]).map(t=>`<span class="bcard-tag">${t}</span>`).join('')}
+        </div>
+        <div class="bcard-actions">
+          <a href="${b.urlVer}" target="_blank" class="bcard-ver">Ver boletín →</a>
+          <a href="${b.urlDl}" target="_blank" class="bcard-dl" title="Descargar PDF">⬇️</a>
+        </div>
+      </div>
+    </div>`).join('') + `
+    <div class="bcard-proximamente">
+      <div style="font-size:32px;margin-bottom:12px">📬</div>
+      <div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px">Nuevo boletín en camino</div>
+      <p style="font-size:12px;color:var(--light);line-height:1.6;margin-bottom:16px">Publicamos nuevos análisis sectoriales periódicamente.</p>
+      <a href="index.html#contacto" class="btn btn-outline" style="font-size:12px;padding:9px 18px">Notificarme →</a>
+    </div>`;
+}
+
+async function cargarBoletines() {
+  try {
+    const snap = await window.fsGetDocs(window.fsCollection(window.fsdb,'boletines'));
+    todosBoletines = snap.docs.map(d=>({...d.data(),_id:d.id}));
+    todosBoletines.sort((a,b)=>new Date(b.creadoEn)-new Date(a.creadoEn));
+
+    // Construir filtros dinámicos por sector
+    const sectores = [...new Set(todosBoletines.map(b=>b.sector).filter(Boolean))];
+    const filtrosEl = document.querySelector('.filtros');
+    filtrosEl.innerHTML = `<button class="filtro-btn active" onclick="filtrar('todos',this)">Todos</button>`
+      + sectores.map(s=>`<button class="filtro-btn" onclick="filtrar('${s}',this)">${s}</button>`).join('');
+
+    renderGrid(todosBoletines);
+  } catch(e) {
+    document.getElementById('boletinesGrid').innerHTML =
+      `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted)">Error al cargar boletines. Intenta recargar la página.</div>`;
+  }
+}
+
+// Esperar a que Firebase esté listo
+function waitForFirebase() {
+  if(window.fsdb) { cargarBoletines(); }
+  else { setTimeout(waitForFirebase, 100); }
+}
+waitForFirebase();
 // Dropdown sectores
 document.querySelectorAll('.nav-dropdown').forEach(item=>{
   const menu=item.querySelector('.nav-dropdown-menu');

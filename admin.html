@@ -88,7 +88,7 @@ tr:last-child td{border-bottom:none}
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, setDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCFIxUb0WMJLIitGTu1x_bhXG1bhFOy1Ac",
@@ -105,6 +105,7 @@ tr:last-child td{border-bottom:none}
   window.fsdb = firestore;
   window.fsCollection = collection;
   window.fsAddDoc = addDoc;
+  window.fsSetDoc = setDoc;
   window.fsDeleteDoc = deleteDoc;
   window.fsDoc = doc;
   window.fsGetDocs = getDocs;
@@ -355,9 +356,46 @@ function fmtDate(d){if(!d)return'—';return new Date(d+'T00:00:00').toLocaleDat
 function fmtMes(m){if(!m)return'—';const[y,mo]=m.split('-');return new Date(y,mo-1,1).toLocaleDateString('es-CO',{month:'long',year:'numeric'});}
 function badge(t,cl){return`<span class="badge ${cl}">${t}</span>`;}
 function emptyRow(c,m){return`<tr><td colspan="${c}" style="text-align:center;padding:32px;color:var(--muted)">${m}</td></tr>`;}
-function publicarBoletin(){const titulo=v('bTitulo'),fecha=v('bFecha'),sector=v('bSector'),resumen=v('bResumen'),urlVer=v('bUrlVer'),urlDl=v('bUrlDl');if(!titulo||!fecha||!sector||!resumen||!urlVer||!urlDl){toast('Complete todos los campos obligatorios (*)',true);return;}const arr=db.get('boletines');arr.unshift({id:Date.now(),titulo,fecha,sector,resumen,tags:v('bTags').split(',').map(t=>t.trim()).filter(Boolean),urlVer,urlDl,creadoEn:new Date().toISOString()});db.set('boletines',arr);limpiar('b','Titulo,Resumen,Tags,UrlVer,UrlDl');renderTblBoletines();updateResumen();toast('✓ Boletín publicado exitosamente');}
-function eliminarBoletin(id){if(!confirm('¿Eliminar?'))return;db.set('boletines',db.get('boletines').filter(x=>x.id!==id));renderTblBoletines();updateResumen();toast('Eliminado');}
-function renderTblBoletines(){const arr=db.get('boletines'),tb=document.getElementById('tblBoletines');if(!arr.length){tb.innerHTML=emptyRow(4,'Sin boletines publicados');return;}tb.innerHTML=arr.map(b=>`<tr><td><div style="font-weight:600;color:var(--ink)">${b.titulo}</div><div style="font-size:11px;color:var(--muted)">${(b.resumen||'').slice(0,60)}...</div></td><td>${fmtMes(b.fecha)}</td><td>${badge(b.sector,'bp')}</td><td style="white-space:nowrap"><a href="${b.urlVer}" target="_blank" class="btn-edit">Ver</a> <button class="btn-del" onclick="eliminarBoletin(${b.id})">✕</button></td></tr>`).join('');}
+async function publicarBoletin(){
+  const titulo=v('bTitulo'),fecha=v('bFecha'),sector=v('bSector'),resumen=v('bResumen'),urlVer=v('bUrlVer'),urlDl=v('bUrlDl');
+  if(!titulo||!fecha||!sector||!resumen||!urlVer||!urlDl){toast('Complete todos los campos obligatorios (*)',true);return;}
+  try {
+    await window.fsAddDoc(window.fsCollection(window.fsdb,'boletines'),{
+      titulo,fecha,sector,resumen,
+      tags:v('bTags').split(',').map(t=>t.trim()).filter(Boolean),
+      urlVer,urlDl,
+      creadoEn:new Date().toISOString()
+    });
+    limpiar('b','Titulo,Resumen,Tags,UrlVer,UrlDl');
+    await renderTblBoletines();
+    updateResumen();
+    toast('✓ Boletín publicado exitosamente');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
+}
+async function eliminarBoletin(id){
+  if(!confirm('¿Eliminar?'))return;
+  try {
+    await window.fsDeleteDoc(window.fsDoc(window.fsdb,'boletines',id));
+    await renderTblBoletines();
+    updateResumen();
+    toast('Eliminado');
+  } catch(e){ toast('Error: '+e.message,true); }
+}
+async function renderTblBoletines(){
+  try {
+    const snap = await window.fsGetDocs(window.fsCollection(window.fsdb,'boletines'));
+    let arr = snap.docs.map(d=>({...d.data(),_id:d.id}));
+    arr.sort((a,b)=>new Date(b.creadoEn)-new Date(a.creadoEn));
+    const tb=document.getElementById('tblBoletines');
+    if(!arr.length){tb.innerHTML=emptyRow(4,'Sin boletines publicados');return;}
+    tb.innerHTML=arr.map(b=>`<tr>
+      <td><div style="font-weight:600;color:var(--ink)">${b.titulo}</div><div style="font-size:11px;color:var(--muted)">${(b.resumen||'').slice(0,60)}...</div></td>
+      <td>${fmtMes(b.fecha)}</td>
+      <td>${badge(b.sector,'bp')}</td>
+      <td style="white-space:nowrap"><a href="${b.urlVer}" target="_blank" class="btn-edit">Ver</a> <button class="btn-del" onclick="eliminarBoletin('${b._id}')">✕</button></td>
+    </tr>`).join('');
+  } catch(e){ console.error(e); }
+}
 function publicarEvento(){const titulo=v('eTitulo'),fecha=v('eFecha'),descripcion=v('eDescripcion');if(!titulo||!fecha||!descripcion){toast('Título, fecha y descripción son obligatorios',true);return;}const arr=db.get('eventos');arr.unshift({id:Date.now(),titulo,fecha,hora:v('eHora'),lugar:v('eLugar'),modalidad:v('eModalidad'),cupos:v('eCupos'),descripcion,url:v('eUrl'),creadoEn:new Date().toISOString()});arr.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));db.set('eventos',arr);limpiar('e','Titulo,Hora,Lugar,Cupos,Descripcion,Url');renderTblEventos();updateResumen();toast('✓ Evento publicado exitosamente');}
 function eliminarEvento(id){if(!confirm('¿Eliminar?'))return;db.set('eventos',db.get('eventos').filter(x=>x.id!==id));renderTblEventos();updateResumen();toast('Eliminado');}
 function renderTblEventos(){const arr=db.get('eventos'),tb=document.getElementById('tblEventos');if(!arr.length){tb.innerHTML=emptyRow(4,'Sin eventos publicados');return;}tb.innerHTML=arr.map(e=>`<tr><td><div style="font-weight:600;color:var(--ink)">${e.titulo}</div>${e.lugar?`<div style="font-size:11px;color:var(--muted)">📍 ${e.lugar}</div>`:''}</td><td>${fmtDate(e.fecha)}${e.hora?` · ${e.hora}`:''}</td><td>${badge(e.modalidad||'Presencial','bg')}</td><td style="white-space:nowrap">${e.url?`<a href="${e.url}" target="_blank" class="btn-edit">Ver</a> `:''}<button class="btn-del" onclick="eliminarEvento(${e.id})">✕</button></td></tr>`).join('');}
