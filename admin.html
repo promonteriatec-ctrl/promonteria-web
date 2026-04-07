@@ -396,12 +396,85 @@ async function renderTblBoletines(){
     </tr>`).join('');
   } catch(e){ console.error(e); }
 }
-function publicarEvento(){const titulo=v('eTitulo'),fecha=v('eFecha'),descripcion=v('eDescripcion');if(!titulo||!fecha||!descripcion){toast('Título, fecha y descripción son obligatorios',true);return;}const arr=db.get('eventos');arr.unshift({id:Date.now(),titulo,fecha,hora:v('eHora'),lugar:v('eLugar'),modalidad:v('eModalidad'),cupos:v('eCupos'),descripcion,url:v('eUrl'),creadoEn:new Date().toISOString()});arr.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));db.set('eventos',arr);limpiar('e','Titulo,Hora,Lugar,Cupos,Descripcion,Url');renderTblEventos();updateResumen();toast('✓ Evento publicado exitosamente');}
-function eliminarEvento(id){if(!confirm('¿Eliminar?'))return;db.set('eventos',db.get('eventos').filter(x=>x.id!==id));renderTblEventos();updateResumen();toast('Eliminado');}
-function renderTblEventos(){const arr=db.get('eventos'),tb=document.getElementById('tblEventos');if(!arr.length){tb.innerHTML=emptyRow(4,'Sin eventos publicados');return;}tb.innerHTML=arr.map(e=>`<tr><td><div style="font-weight:600;color:var(--ink)">${e.titulo}</div>${e.lugar?`<div style="font-size:11px;color:var(--muted)">📍 ${e.lugar}</div>`:''}</td><td>${fmtDate(e.fecha)}${e.hora?` · ${e.hora}`:''}</td><td>${badge(e.modalidad||'Presencial','bg')}</td><td style="white-space:nowrap">${e.url?`<a href="${e.url}" target="_blank" class="btn-edit">Ver</a> `:''}<button class="btn-del" onclick="eliminarEvento(${e.id})">✕</button></td></tr>`).join('');}
-function publicarOportunidad(){const nombre=v('oNombre'),dirigidoA=v('oDirigidoA'),sector=v('oSector'),descripcion=v('oDescripcion'),url=v('oUrl');if(!nombre||!dirigidoA||!sector||!descripcion||!url){toast('Complete todos los campos obligatorios (*)',true);return;}const arr=db.get('oportunidades');arr.unshift({id:Date.now(),nombre,dirigidoA,sector,monto:v('oMonto'),fechaLimite:v('oFechaLimite'),descripcion,url,creadoEn:new Date().toISOString()});db.set('oportunidades',arr);limpiar('o','Nombre,DirigidoA,Monto,FechaLimite,Descripcion,Url');renderTblOportunidades();updateResumen();toast('✓ Oportunidad publicada exitosamente');}
-function eliminarOportunidad(id){if(!confirm('¿Eliminar?'))return;db.set('oportunidades',db.get('oportunidades').filter(x=>x.id!==id));renderTblOportunidades();updateResumen();toast('Eliminada');}
-function renderTblOportunidades(){const arr=db.get('oportunidades'),tb=document.getElementById('tblOportunidades');if(!arr.length){tb.innerHTML=emptyRow(5,'Sin oportunidades publicadas');return;}tb.innerHTML=arr.map(o=>`<tr><td><div style="font-weight:600;color:var(--ink)">${o.nombre}</div><div style="font-size:11px;color:var(--muted)">Dirigido a: ${o.dirigidoA}</div></td><td>${badge(o.sector,'bp')}</td><td style="font-weight:600;color:#065F46">${o.monto||'—'}</td><td>${o.fechaLimite?fmtDate(o.fechaLimite):'—'}</td><td><a href="${o.url}" target="_blank" class="btn-edit">Ver</a> <button class="btn-del" onclick="eliminarOportunidad(${o.id})">✕</button></td></tr>`).join('');}
+async function publicarEvento(){
+  const titulo=v('eTitulo'),fecha=v('eFecha'),descripcion=v('eDescripcion');
+  if(!titulo||!fecha||!descripcion){toast('Título, fecha y descripción son obligatorios',true);return;}
+  try {
+    await window.fsAddDoc(window.fsCollection(window.fsdb,'eventos'),{
+      titulo,fecha,hora:v('eHora'),lugar:v('eLugar'),
+      modalidad:v('eModalidad'),cupos:v('eCupos'),
+      descripcion,url:v('eUrl'),creadoEn:new Date().toISOString()
+    });
+    limpiar('e','Titulo,Hora,Lugar,Cupos,Descripcion,Url');
+    await renderTblEventos();
+    updateResumen();
+    toast('✓ Evento publicado exitosamente');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
+}
+async function eliminarEvento(id){
+  if(!confirm('¿Eliminar?'))return;
+  try {
+    await window.fsDeleteDoc(window.fsDoc(window.fsdb,'eventos',id));
+    await renderTblEventos();
+    updateResumen();
+    toast('Eliminado');
+  } catch(e){ toast('Error: '+e.message,true); }
+}
+async function renderTblEventos(){
+  try {
+    const snap=await window.fsGetDocs(window.fsCollection(window.fsdb,'eventos'));
+    let arr=snap.docs.map(d=>({...d.data(),_id:d.id}));
+    arr.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+    const tb=document.getElementById('tblEventos');
+    if(!arr.length){tb.innerHTML=emptyRow(4,'Sin eventos publicados');return;}
+    tb.innerHTML=arr.map(e=>`<tr>
+      <td><div style="font-weight:600;color:var(--ink)">${e.titulo}</div>${e.lugar?`<div style="font-size:11px;color:var(--muted)">📍 ${e.lugar}</div>`:''}</td>
+      <td>${fmtDate(e.fecha)}${e.hora?` · ${e.hora}`:''}</td>
+      <td>${badge(e.modalidad||'Presencial','bg')}</td>
+      <td style="white-space:nowrap">${e.url?`<a href="${e.url}" target="_blank" class="btn-edit">Ver</a> `:''}<button class="btn-del" onclick="eliminarEvento('${e._id}')">✕</button></td>
+    </tr>`).join('');
+  } catch(e){ console.error(e); }
+}
+async function publicarOportunidad(){
+  const nombre=v('oNombre'),dirigidoA=v('oDirigidoA'),sector=v('oSector'),descripcion=v('oDescripcion'),url=v('oUrl');
+  if(!nombre||!dirigidoA||!sector||!descripcion||!url){toast('Complete todos los campos obligatorios (*)',true);return;}
+  try {
+    await window.fsAddDoc(window.fsCollection(window.fsdb,'oportunidades'),{
+      nombre,dirigidoA,sector,monto:v('oMonto'),
+      fechaLimite:v('oFechaLimite'),descripcion,url,
+      creadoEn:new Date().toISOString()
+    });
+    limpiar('o','Nombre,DirigidoA,Monto,FechaLimite,Descripcion,Url');
+    await renderTblOportunidades();
+    updateResumen();
+    toast('✓ Oportunidad publicada exitosamente');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
+}
+async function eliminarOportunidad(id){
+  if(!confirm('¿Eliminar?'))return;
+  try {
+    await window.fsDeleteDoc(window.fsDoc(window.fsdb,'oportunidades',id));
+    await renderTblOportunidades();
+    updateResumen();
+    toast('Eliminada');
+  } catch(e){ toast('Error: '+e.message,true); }
+}
+async function renderTblOportunidades(){
+  try {
+    const snap=await window.fsGetDocs(window.fsCollection(window.fsdb,'oportunidades'));
+    let arr=snap.docs.map(d=>({...d.data(),_id:d.id}));
+    arr.sort((a,b)=>new Date(b.creadoEn)-new Date(a.creadoEn));
+    const tb=document.getElementById('tblOportunidades');
+    if(!arr.length){tb.innerHTML=emptyRow(5,'Sin oportunidades publicadas');return;}
+    tb.innerHTML=arr.map(o=>`<tr>
+      <td><div style="font-weight:600;color:var(--ink)">${o.nombre}</div><div style="font-size:11px;color:var(--muted)">Dirigido a: ${o.dirigidoA}</div></td>
+      <td>${badge(o.sector,'bp')}</td>
+      <td style="font-weight:600;color:#065F46">${o.monto||'—'}</td>
+      <td>${o.fechaLimite?fmtDate(o.fechaLimite):'—'}</td>
+      <td><a href="${o.url}" target="_blank" class="btn-edit">Ver</a> <button class="btn-del" onclick="eliminarOportunidad('${o._id}')">✕</button></td>
+    </tr>`).join('');
+  } catch(e){ console.error(e); }
+}
 async function subirLogo(input) {
   const file = input.files[0];
   if(!file) return;
