@@ -442,6 +442,49 @@ h1.hero-h1 .word-lift:last-child {
 .lang-btn:hover{border-color:rgba(255,255,255,.5);color:#fff}
 .lang-btn.active{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4);color:#fff}
 </style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+  const app = initializeApp({
+    apiKey: "AIzaSyCFIxUb0WMJLIitGTu1x_bhXG1bhFOy1Ac",
+    authDomain: "promonteria-web.firebaseapp.com",
+    projectId: "promonteria-web",
+    storageBucket: "promonteria-web.firebasestorage.app",
+    messagingSenderId: "427153323484",
+    appId: "1:427153323484:web:ddbce6136af3fd62484b19"
+  });
+  const db = getFirestore(app);
+
+  async function cargarUltimoBoletin() {
+    try {
+      const snap = await getDocs(collection(db, 'boletines'));
+      if(!snap.size) return;
+      const boletines = snap.docs.map(d=>({...d.data(),_id:d.id}));
+      boletines.sort((a,b)=>new Date(b.creadoEn)-new Date(a.creadoEn));
+      const b = boletines[0];
+      const fecha = b.fecha ? new Date(b.fecha+'-01').toLocaleDateString('es-CO',{month:'long',year:'numeric'}) : '';
+      document.getElementById('ultimo-boletin').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:28px 32px">
+          <div>
+            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:14px">📄 Último boletín · ${fecha}</div>
+            <h3 style="font-size:clamp(16px,2vw,22px);font-weight:800;letter-spacing:-.03em;color:#fff;margin-bottom:8px;line-height:1.2">${b.titulo}</h3>
+            <p style="font-size:14px;color:rgba(255,255,255,.8);line-height:1.65;margin-bottom:20px;max-width:520px">${b.resumen||''}</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <a href="${b.urlVer}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:9px;background:rgba(255,255,255,.15);color:#fff;font-size:13px;font-weight:600;text-decoration:none;border:1.5px solid rgba(255,255,255,.35)">Ver boletín →</a>
+              <a href="${b.urlDl}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:9px;background:#fff;color:#065F46;font-size:13px;font-weight:700;text-decoration:none">⬇ Descargar PDF</a>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:600;letter-spacing:.06em;text-transform:uppercase">${b.sector||''}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">${fecha}</div>
+          </div>
+        </div>`;
+    } catch(e){ console.error('Error cargando boletín:', e); }
+  }
+
+  cargarUltimoBoletin();
+</script>
 </head>
 <body>
 
@@ -1054,18 +1097,8 @@ h1.hero-h1 .word-lift:last-child {
     </div>
 
     <div id="ultimo-boletin" class="reveal">
-      <div style="display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:28px 32px">
-        <div>
-          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:14px">📄 Último boletín · Enero 2026</div>
-          <h3 style="font-size:clamp(16px,2vw,22px);font-weight:800;letter-spacing:-.03em;color:#fff;margin-bottom:8px;line-height:1.2">Ingredientes naturales para la industria cosmética: Aceites</h3>
-          <p style="font-size:14px;color:rgba(255,255,255,.8);line-height:1.65;margin-bottom:20px;max-width:520px">Análisis del potencial de los aceites naturales de Córdoba como insumo estratégico para la industria cosmética global. Tendencias de mercado, oportunidades de inversión y ventajas competitivas del territorio.</p>
-          <a href="URL_DESCARGAR_BOLETIN_1" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:9px;background:#fff;color:#EA580C;font-size:14px;font-weight:700;text-decoration:none;transition:all .2s" onmouseenter="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(0,0,0,.15)'" onmouseleave="this.style.transform='none';this.style.boxShadow='none'">⬇ Descargar PDF</a>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:28px;margin-bottom:8px"></div>
-          <div style="font-size:11px;color:rgba(255,255,255,.7);font-weight:600;letter-spacing:.06em;text-transform:uppercase">Industrialización Verde</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:2px">Enero 2026 · 31 páginas</div>
-        </div>
+      <div style="display:flex;align-items:center;justify-content:center;padding:40px;color:rgba(255,255,255,.5);font-size:14px">
+        ⏳ Cargando último boletín...
       </div>
     </div>
 
