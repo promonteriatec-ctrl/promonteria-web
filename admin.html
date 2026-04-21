@@ -387,14 +387,61 @@ async function renderTblBoletines(){
     let arr = snap.docs.map(d=>({...d.data(),_id:d.id}));
     arr.sort((a,b)=>new Date(b.creadoEn)-new Date(a.creadoEn));
     const tb=document.getElementById('tblBoletines');
-    if(!arr.length){tb.innerHTML=emptyRow(4,'Sin boletines publicados');return;}
+    if(!arr.length){tb.innerHTML=emptyRow(5,'Sin boletines publicados');return;}
     tb.innerHTML=arr.map(b=>`<tr>
       <td><div style="font-weight:600;color:var(--ink)">${b.titulo}</div><div style="font-size:11px;color:var(--muted)">${(b.resumen||'').slice(0,60)}...</div></td>
       <td>${fmtMes(b.fecha)}</td>
       <td>${badge(b.sector,'bp')}</td>
-      <td style="white-space:nowrap"><a href="${b.urlVer}" target="_blank" class="btn-edit">Ver</a> <button class="btn-del" onclick="eliminarBoletin('${b._id}')">✕</button></td>
+      <td style="white-space:nowrap"><a href="${b.urlVer}" target="_blank" class="btn-edit">Ver</a></td>
+      <td style="white-space:nowrap">
+        <button class="btn-edit" onclick="editarBoletin('${b._id}')">✏️ Editar</button>
+        <button class="btn-del" onclick="eliminarBoletin('${b._id}')">✕</button>
+      </td>
     </tr>`).join('');
   } catch(e){ console.error(e); }
+}
+
+async function editarBoletin(id) {
+  try {
+    const snap = await window.fsGetDocs(window.fsCollection(window.fsdb,'boletines'));
+    const docData = snap.docs.find(d=>d.id===id);
+    if(!docData) return;
+    const b = docData.data();
+    document.getElementById('bTitulo').value = b.titulo||'';
+    document.getElementById('bFecha').value = b.fecha||'';
+    document.getElementById('bSector').value = b.sector||'';
+    document.getElementById('bResumen').value = b.resumen||'';
+    document.getElementById('bTags').value = (b.tags||[]).join(', ');
+    document.getElementById('bUrlVer').value = b.urlVer||'';
+    document.getElementById('bUrlDl').value = b.urlDl||'';
+    const btn = document.querySelector('button[onclick="publicarBoletin()"]');
+    btn.textContent = '💾 Guardar cambios';
+    btn.setAttribute('onclick', `guardarEdicionBoletin('${id}')`);
+    btn.style.background = '#065F46';
+    document.getElementById('bTitulo').scrollIntoView({behavior:'smooth', block:'center'});
+    toast('✏️ Editando boletín — modifica los datos y guarda');
+  } catch(e){ toast('Error al cargar: '+e.message, true); }
+}
+
+async function guardarEdicionBoletin(id) {
+  const titulo=v('bTitulo'),fecha=v('bFecha'),sector=v('bSector'),resumen=v('bResumen'),urlVer=v('bUrlVer'),urlDl=v('bUrlDl');
+  if(!titulo||!fecha||!sector||!resumen||!urlVer||!urlDl){toast('Complete todos los campos obligatorios (*)',true);return;}
+  try {
+    const {setDoc, doc} = await import('https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js');
+    await setDoc(doc(window.fsdb,'boletines',id),{
+      titulo,fecha,sector,resumen,
+      tags:v('bTags').split(',').map(t=>t.trim()).filter(Boolean),
+      urlVer,urlDl,
+      actualizadoEn:new Date().toISOString()
+    },{merge:true});
+    limpiar('b','Titulo,Resumen,Tags,UrlVer,UrlDl');
+    document.getElementById('bFecha').value = new Date().toISOString().slice(0,7);
+    const btn = document.querySelector(`button[onclick="guardarEdicionBoletin('${id}')"]`);
+    if(btn){btn.textContent='Publicar boletín';btn.setAttribute('onclick','publicarBoletin()');btn.style.background='';}
+    await renderTblBoletines();
+    updateResumen();
+    toast('✓ Boletín actualizado correctamente');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
 }
 async function publicarEvento(){
   const titulo=v('eTitulo'),fecha=v('eFecha'),descripcion=v('eDescripcion');
@@ -426,14 +473,62 @@ async function renderTblEventos(){
     let arr=snap.docs.map(d=>({...d.data(),_id:d.id}));
     arr.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
     const tb=document.getElementById('tblEventos');
-    if(!arr.length){tb.innerHTML=emptyRow(4,'Sin eventos publicados');return;}
+    if(!arr.length){tb.innerHTML=emptyRow(5,'Sin eventos publicados');return;}
     tb.innerHTML=arr.map(e=>`<tr>
       <td><div style="font-weight:600;color:var(--ink)">${e.titulo}</div>${e.lugar?`<div style="font-size:11px;color:var(--muted)">📍 ${e.lugar}</div>`:''}</td>
       <td>${fmtDate(e.fecha)}${e.hora?` · ${e.hora}`:''}</td>
       <td>${badge(e.modalidad||'Presencial','bg')}</td>
-      <td style="white-space:nowrap">${e.url?`<a href="${e.url}" target="_blank" class="btn-edit">Ver</a> `:''}<button class="btn-del" onclick="eliminarEvento('${e._id}')">✕</button></td>
+      <td style="white-space:nowrap">${e.url?`<a href="${e.url}" target="_blank" class="btn-edit">Ver</a>`:''}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-edit" onclick="editarEvento('${e._id}')">✏️ Editar</button>
+        <button class="btn-del" onclick="eliminarEvento('${e._id}')">✕</button>
+      </td>
     </tr>`).join('');
   } catch(e){ console.error(e); }
+}
+
+async function editarEvento(id) {
+  try {
+    const snap = await window.fsGetDocs(window.fsCollection(window.fsdb,'eventos'));
+    const docData = snap.docs.find(d=>d.id===id);
+    if(!docData) return;
+    const e = docData.data();
+    document.getElementById('eTitulo').value = e.titulo||'';
+    document.getElementById('eFecha').value = e.fecha||'';
+    document.getElementById('eHora').value = e.hora||'';
+    document.getElementById('eLugar').value = e.lugar||'';
+    document.getElementById('eModalidad').value = e.modalidad||'';
+    document.getElementById('eCupos').value = e.cupos||'';
+    document.getElementById('eDescripcion').value = e.descripcion||'';
+    document.getElementById('eUrl').value = e.url||'';
+    const btn = document.querySelector('button[onclick="publicarEvento()"]');
+    btn.textContent = '💾 Guardar cambios';
+    btn.setAttribute('onclick', `guardarEdicionEvento('${id}')`);
+    btn.style.background = '#065F46';
+    document.getElementById('eTitulo').scrollIntoView({behavior:'smooth', block:'center'});
+    toast('✏️ Editando evento — modifica los datos y guarda');
+  } catch(e){ toast('Error al cargar: '+e.message, true); }
+}
+
+async function guardarEdicionEvento(id) {
+  const titulo=v('eTitulo'),fecha=v('eFecha'),descripcion=v('eDescripcion');
+  if(!titulo||!fecha||!descripcion){toast('Título, fecha y descripción son obligatorios',true);return;}
+  try {
+    const {setDoc, doc} = await import('https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js');
+    await setDoc(doc(window.fsdb,'eventos',id),{
+      titulo,fecha,
+      hora:v('eHora'),lugar:v('eLugar'),
+      modalidad:v('eModalidad'),cupos:v('eCupos'),
+      descripcion,url:v('eUrl'),
+      actualizadoEn:new Date().toISOString()
+    },{merge:true});
+    limpiar('e','Titulo,Hora,Lugar,Cupos,Descripcion,Url');
+    const btn = document.querySelector(`button[onclick="guardarEdicionEvento('${id}')"]`);
+    if(btn){btn.textContent='Publicar evento';btn.setAttribute('onclick','publicarEvento()');btn.style.background='';}
+    await renderTblEventos();
+    updateResumen();
+    toast('✓ Evento actualizado correctamente');
+  } catch(e){ toast('Error al guardar: '+e.message,true); }
 }
 async function publicarOportunidad(){
   const nombre=v('oNombre'),dirigidoA=v('oDirigidoA'),sector=v('oSector'),descripcion=v('oDescripcion'),url=v('oUrl');
