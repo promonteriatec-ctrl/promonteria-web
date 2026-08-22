@@ -405,11 +405,37 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--i
 <script>
 
 
-// ── STORAGE ───────────────────────────────────────────────────────────────────
-const db = {
-  get: k => { try { return JSON.parse(localStorage.getItem('pm_'+k)||'[]'); } catch(e){return [];} },
-  getObj: (k,d={}) => { try { return JSON.parse(localStorage.getItem('pm_'+k)||JSON.stringify(d)); } catch(e){return d;} }
-};
+// ── DATOS (Firestore) ─────────────────────────────────────────────────────────
+// Cache en memoria: evita releer la misma colección al cambiar de pestaña.
+// Se limpia sola al recargar la página.
+const _cache = {};
+async function fetchCol(nombre) {
+  if(_cache[nombre]) return _cache[nombre];
+  const snap = await window.fsGetDocs(window.fsCollection(window.fsdb, nombre));
+  _cache[nombre] = snap.docs.map(d => ({...d.data(), _id: d.id}));
+  return _cache[nombre];
+}
+
+// ── VIGENCIA ──────────────────────────────────────────────────────────────────
+// Hoy a medianoche: sin esto, un evento o convocatoria de HOY se considera
+// vencido apenas pasa la medianoche por comparar contra la hora actual.
+function hoy0() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+// Sin fecha = vigente (evento por confirmar / convocatoria abierta indefinida).
+function vigente(fecha) {
+  if(!fecha) return true;
+  const d = new Date(fecha + 'T00:00:00');
+  return isNaN(d) ? true : d >= hoy0();
+}
+// Ordena por fecha ascendente; los sin fecha van al final.
+function porFecha(campo) {
+  return (a,b) => new Date((a[campo]||'2999-12-31')+'T00:00:00') - new Date((b[campo]||'2999-12-31')+'T00:00:00');
+}
+function cargando(cont) {
+  cont.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Cargando…</div></div>';
+}
+function errorCarga(cont, qué) {
+  isEmpty(cont,'⚠️',`No se pudieron cargar ${qué}`,'Revise su conexión e intente de nuevo.');
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 async function initPanel() {
@@ -419,7 +445,8 @@ async function initPanel() {
   document.getElementById('sidebarUserName').textContent = nombre.charAt(0).toUpperCase()+nombre.slice(1);
   document.getElementById('welcomeName').textContent = nombre.charAt(0).toUpperCase()+nombre.slice(1);
   await loadInicio();
-  await buildSectoresFiltrosMiembros();
+  await buildSectoresFiltros();          // filtros de la pestaña Oportunidades
+  await buildSectoresFiltrosMiembros();  // filtros de la pestaña Directorio
 }
 
 // ── VIEW NAV ──────────────────────────────────────────────────────────────────
@@ -457,18 +484,15 @@ function isEmpty(cont,icon,title,sub) {
 async function loadInicio() {
   // Cargar contadores desde Firestore
   try {
-    const [snapEv, snapOps, snapMi, snapBol] = await Promise.all([
-      window.fsGetDocs(window.fsCollection(window.fsdb,'eventos')),
-      window.fsGetDocs(window.fsCollection(window.fsdb,'oportunidades')),
-      window.fsGetDocs(window.fsCollection(window.fsdb,'miembros')),
-      window.fsGetDocs(window.fsCollection(window.fsdb,'boletines')),
+    const [todosEventos, todasOps, miembros] = await Promise.all([
+      fetchCol('eventos'),
+      fetchCol('oportunidades'),
+      fetchCol('miembros'),
     ]);
 
-    const eventos = snapEv.docs.map(d=>({...d.data(),_id:d.id}))
-      .filter(e=>!e.fecha||new Date(e.fecha+'T00:00:00')>=new Date())
-      .sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
-    const ops = snapOps.docs.map(d=>({...d.data(),_id:d.id}));
-    const miembros = snapMi.docs.map(d=>({...d.data(),_id:d.id}));
+    // Solo lo vigente, igual que en las pestañas Eventos y Oportunidades.
+    const eventos = todosEventos.filter(e=>vigente(e.fecha)).sort(porFecha('fecha'));
+    const ops = todasOps.filter(o=>vigente(o.fechaLimite)).sort(porFecha('fechaLimite'));
 
     document.getElementById('stEventos').textContent = eventos.length;
     document.getElementById('stOps').textContent = ops.length;
@@ -519,10 +543,14 @@ async function loadInicio() {
 }
 
 // ── EVENTOS ───────────────────────────────────────────────────────────────────
-function renderEventos() {
+async function renderEventos() {
   const cont=document.getElementById('eventosContent');
-  const eventos=db.get('eventos');
-  if(!eventos.length) { isEmpty(cont,'📅','Sin eventos publicados','La agencia publicará próximamente eventos para miembros.'); return; }
+  cargando(cont);
+  let eventos;
+  try {
+    eventos=(await fetchCol('eventos')).filter(e=>vigente(e.fecha)).sort(porFecha('fecha'));
+  } catch(err) { console.error('Error cargando eventos:', err); errorCarga(cont,'los eventos'); return; }
+  if(!eventos.length) { isEmpty(cont,'📅','Sin eventos próximos','La agencia publicará próximamente eventos para miembros.'); return; }
   cont.innerHTML=eventos.map(e=>`
     <div class="evento-card">
       <div class="evento-bar"></div>
@@ -543,10 +571,21 @@ function renderEventos() {
 
 // ── OPORTUNIDADES ─────────────────────────────────────────────────────────────
 let opSectorActivo='Todos';
-function buildSectoresFiltros() {
-  const sectores=['Todos',...new Set(db.get('oportunidades').map(o=>o.sector).filter(Boolean))];
-  document.getElementById('opFiltros').innerHTML=sectores.map(s=>
-    `<button class="filter-btn${s==='Todos'?' active':''}" onclick="filtrarOps('${s}',this)">${s}</button>`
+// Construye la barra de filtros sólo con los sectores que tienen convocatorias
+// vigentes: no tiene sentido ofrecer un filtro que devuelve cero resultados.
+async function buildSectoresFiltros() {
+  let ops;
+  try { ops=(await fetchCol('oportunidades')).filter(o=>vigente(o.fechaLimite)); }
+  catch(err) { console.error('Error cargando sectores de oportunidades:', err); return; }
+  const cont=document.getElementById('opFiltros');
+  if(!cont) return;
+  const sectores=['Todos',...new Set(ops.map(o=>o.sector).filter(Boolean))].sort((a,b)=>
+    a==='Todos'?-1:b==='Todos'?1:a.localeCompare(b,'es')
+  );
+  // Si sólo queda "Todos" no vale la pena mostrar la barra.
+  if(sectores.length<2) { cont.innerHTML=''; return; }
+  cont.innerHTML=sectores.map(s=>
+    `<button class="filter-btn${s===opSectorActivo?' active':''}" onclick="filtrarOps(&quot;${String(s).replace(/"/g,'&quot;')}&quot;,this)">${s}</button>`
   ).join('');
 }
 function filtrarOps(sector,btn) {
@@ -555,11 +594,21 @@ function filtrarOps(sector,btn) {
   btn.classList.add('active');
   renderOportunidades();
 }
-function renderOportunidades() {
+async function renderOportunidades() {
   const cont=document.getElementById('oportunidadesContent');
-  let ops=db.get('oportunidades');
+  cargando(cont);
+  let ops;
+  try {
+    ops=(await fetchCol('oportunidades')).filter(o=>vigente(o.fechaLimite)).sort(porFecha('fechaLimite'));
+  } catch(err) { console.error('Error cargando oportunidades:', err); errorCarga(cont,'las oportunidades'); return; }
+  const hayVigentes=ops.length;
   if(opSectorActivo!=='Todos') ops=ops.filter(o=>o.sector===opSectorActivo);
-  if(!ops.length) { isEmpty(cont,'💼','Sin oportunidades','No hay oportunidades en este sector por ahora.'); return; }
+  if(!ops.length) {
+    isEmpty(cont,'💼','Sin oportunidades',
+      hayVigentes?'No hay convocatorias abiertas en este sector por ahora.'
+                 :'No hay convocatorias abiertas en este momento.');
+    return;
+  }
   cont.innerHTML=ops.map(o=>`
     <div class="op-card">
       <div class="op-header">
