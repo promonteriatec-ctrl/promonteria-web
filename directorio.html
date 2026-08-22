@@ -77,6 +77,32 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--i
 .filter-wrap{display:flex;gap:6px;flex-wrap:wrap}
 .filter-btn{padding:8px 16px;border-radius:20px;border:1.5px solid var(--bdr2);background:#fff;color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
 .filter-btn:hover,.filter-btn.active{border-color:var(--p);color:var(--p);background:var(--p-lt)}
+.filter-btn:focus-visible,.filter-opt:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.filter-n{display:inline-block;margin-left:5px;font-size:10.5px;font-weight:700;color:var(--light);font-variant-numeric:tabular-nums}
+.filter-btn:hover .filter-n,.filter-btn.active .filter-n,.filter-opt.active .filter-n{color:var(--p)}
+/* Desplegable con los sectores que no caben en la fila */
+.filter-more{position:relative;display:inline-flex}
+.filter-more-btn{display:inline-flex;align-items:center;gap:4px}
+.filter-more-menu{
+  /* alineado a la derecha: el botón siempre cierra la fila, así el menú
+     no se sale por el borde en ningún ancho de pantalla */
+  position:absolute;top:calc(100% + 8px);right:0;z-index:60;
+  background:#fff;border:1px solid var(--bdr);border-radius:12px;padding:6px;
+  min-width:230px;max-height:min(60vh,340px);overflow-y:auto;
+  box-shadow:0 8px 32px rgba(0,0,0,.15);
+  opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:opacity .18s ease,visibility .18s ease,transform .18s ease;
+}
+.filter-more-menu.open{opacity:1;visibility:visible;transform:none}
+.filter-opt{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  padding:9px 12px;border:none;border-radius:8px;background:none;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink);
+  text-align:left;transition:background .15s,color .15s;
+}
+.filter-opt:hover{background:var(--p-lt);color:var(--p)}
+.filter-opt.active{background:var(--p-lt);color:var(--p)}
+@media (prefers-reduced-motion:reduce){.filter-more-menu{transition:none}}
 
 /* CONTENT */
 .dir-content{max-width:var(--max);margin:0 auto;padding:40px clamp(20px,4vw,64px) 80px}
@@ -299,21 +325,77 @@ async function init() {
   const sectoresUnicos = [...new Set(todos.map(m=>m.sector).filter(Boolean))];
   document.getElementById('statSectores').textContent = sectoresUnicos.length;
   // Filtros
-  buildFiltros(sectoresUnicos);
+  buildFiltros();
   render();
 }
 
-function buildFiltros(sectores) {
-  const wrap = document.getElementById('filtrosSectores');
-  wrap.innerHTML = ['Todos', ...sectores].map(s =>
-    `<button class="filter-btn${s==='Todos'?' active':''}" onclick="setSector('${s}',this)">${s}</button>`
-  ).join('');
+// ── FILTROS POR SECTOR ────────────────────────────────────────────────────────
+// Córdoba tiene un ecosistema empresarial diverso: más de 20 sectores para 100
+// empresas. Mostrarlos todos como botones ocupaba tres filas y volvía inútil el
+// filtro. Se muestran los 8 con más empresas y el resto va en un desplegable.
+const VISIBLES = 8;
+let sectoresOrdenados = [];   // [{nombre, cantidad}] de mayor a menor
+
+function buildFiltros() {
+  const cuenta = {};
+  todos.forEach(m => { if(m.sector) cuenta[m.sector] = (cuenta[m.sector]||0) + 1; });
+  sectoresOrdenados = Object.entries(cuenta)
+    .map(([nombre, cantidad]) => ({nombre, cantidad}))
+    .sort((a,b) => b.cantidad - a.cantidad || a.nombre.localeCompare(b.nombre,'es'));
+  pintarFiltros();
 }
 
-function setSector(s, btn) {
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function pintarFiltros() {
+  const wrap = document.getElementById('filtrosSectores');
+  if(!wrap) return;
+  const visibles = sectoresOrdenados.slice(0, VISIBLES);
+  const resto    = sectoresOrdenados.slice(VISIBLES);
+  const enResto  = resto.some(s => s.nombre === sectorActivo);
+
+  const botón = s => `<button type="button" class="filter-btn${s.nombre===sectorActivo?' active':''}"
+      onclick="setSector('${esc(s.nombre)}')">${esc(s.nombre)} <span class="filter-n">${s.cantidad}</span></button>`;
+
+  let html = `<button type="button" class="filter-btn${sectorActivo==='Todos'?' active':''}"
+      onclick="setSector('Todos')">Todos <span class="filter-n">${todos.length}</span></button>`;
+  html += visibles.map(botón).join('');
+
+  if(resto.length){
+    html += `<span class="filter-more">
+      <button type="button" class="filter-btn filter-more-btn${enResto?' active':''}"
+              id="btnMasSectores" aria-expanded="false" aria-controls="menuSectores"
+              onclick="toggleMasSectores(event)">${enResto ? esc(sectorActivo) : 'Más sectores'} <span aria-hidden="true">▾</span></button>
+      <div class="filter-more-menu" id="menuSectores" role="menu">
+        ${resto.map(s => `<button type="button" role="menuitem" class="filter-opt${s.nombre===sectorActivo?' active':''}"
+              onclick="setSector('${esc(s.nombre)}')">${esc(s.nombre)} <span class="filter-n">${s.cantidad}</span></button>`).join('')}
+      </div></span>`;
+  }
+  wrap.innerHTML = html;
+}
+
+function toggleMasSectores(e) {
+  if(e) e.stopPropagation();
+  const menu = document.getElementById('menuSectores');
+  const btn  = document.getElementById('btnMasSectores');
+  if(!menu) return;
+  const abierto = menu.classList.toggle('open');
+  btn.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+}
+function cerrarMasSectores() {
+  const menu = document.getElementById('menuSectores');
+  const btn  = document.getElementById('btnMasSectores');
+  if(menu){ menu.classList.remove('open'); btn?.setAttribute('aria-expanded','false'); }
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('.filter-more')) cerrarMasSectores();
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarMasSectores(); });
+
+function setSector(s) {
   sectorActivo = s;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  cerrarMasSectores();
+  pintarFiltros();
   render();
 }
 
@@ -374,9 +456,10 @@ document.querySelectorAll('.nav-dropdown').forEach(item=>{
 // Este bloque es <script type="module">: sus funciones NO son globales, así que los
 // onclick/oninput escritos en el HTML no las alcanzan y no pasaba nada al usarlos.
 // Hay que exponerlas a window, igual que se hace con las de Firebase.
-window.setSector = setSector;   // filtros por sector
-window.filtrar   = filtrar;     // buscador
-window.toggleMob = toggleMob;   // menú hamburguesa móvil
+window.setSector        = setSector;        // filtros por sector
+window.filtrar          = filtrar;          // buscador
+window.toggleMob        = toggleMob;        // menú hamburguesa móvil
+window.toggleMasSectores = toggleMasSectores; // desplegable de sectores
 
 init();
 </script>
