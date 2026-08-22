@@ -13,7 +13,7 @@
 :root{--p:#37006C;--p-h:#4A009A;--p-d:#25004A;--p-lt:#F3E8FF;--p-mid:#EDD9FF;--ink:#0D0D12;--body:#374151;--muted:#6B7280;--light:#9CA3AF;--bg:#F9FAFB;--bg2:#F3F4F6;--bdr:#E5E7EB;--bdr2:#D1D5DB;--max:1280px;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
 /* NAV */
 #nav{position:fixed;top:0;left:0;right:0;z-index:900;height:68px;background:var(--p);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,4vw,64px);box-shadow:0 2px 20px rgba(55,0,108,.4)}
@@ -355,6 +355,13 @@ document.querySelectorAll('.nav-dropdown').forEach(item=>{
   item.addEventListener('mouseenter',()=>{menu.style.cssText='opacity:1;visibility:visible;top:calc(100% + 8px);pointer-events:all'});
   item.addEventListener('mouseleave',()=>{menu.style.cssText='opacity:0;visibility:hidden;top:calc(100% + 16px);pointer-events:none'});
 });
+
+// Este bloque es <script type="module">: sus funciones NO son globales, así que los
+// onclick/oninput escritos en el HTML no las alcanzan y no pasaba nada al usarlos.
+// Hay que exponerlas a window, igual que se hace con las de Firebase.
+window.setSector = setSector;   // filtros por sector
+window.filtrar   = filtrar;     // buscador
+window.toggleMob = toggleMob;   // menú hamburguesa móvil
 
 init();
 </script>
