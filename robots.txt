@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Zonas privadas: no indexar
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /miembros
+Disallow: /miembros.html
+
+Sitemap: https://promonteria.com/sitemap.xml
